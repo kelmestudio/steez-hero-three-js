@@ -1,198 +1,275 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
-import { useFrame, useLoader } from "@react-three/fiber"
-import { useGLTF } from "@react-three/drei"
-import { TextureLoader, Mesh, MeshStandardMaterial } from "three"
-import type { Group, Material } from "three"
+import { useGLTF } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useRef, useState, useEffect, useMemo } from "react";
+import * as THREE from "three";
+import { Group, Mesh, MeshStandardMaterial, MeshPhysicalMaterial, TextureLoader, Color } from "three";
+import { GLTF } from "three-stdlib";
+import { LightingSetup } from "./lighting-setup";
+
+type GLTFResult = GLTF & {
+  nodes: {
+    [key: string]: Mesh;
+  };
+  materials: {
+    [key: string]: MeshStandardMaterial;
+  };
+};
+
+type SectionConfig = {
+  position: number[];
+  rotation: number[];
+  scale: number;
+};
+
+type CanConfigs = {
+  [key: string]: SectionConfig;
+};
 
 interface AnimatedCanProps {
-  scrollY: number
+  scrollY: number;
+  activeSection: string;
+  sectionConfigs?: CanConfigs;
+  lightingConfig?: {
+    ambientIntensity?: number;
+    directionalIntensity?: number;
+    pointIntensity?: number;
+  };
 }
 
-// 3D Coca-Cola Can Component using GLTF model
-function SodaCanModel() {
-  // Load the Coca-Cola Can GLTF model with proper texture handling
-  const modelPath = '/models/coca-cola_can.gltf'
-  // Define texture path for loading textures correctly
-  const texturePath = '/models/textures/'
-  // Load the model with all its assets (textures, materials)
-  const { scene, nodes, materials } = useGLTF(modelPath, true) as any
+/**
+ * Componente AnimatedCan - Renderiza uma lata 3D animada que responde às mudanças de seção
+ */
+export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: AnimatedCanProps) {
+  // Referência para o grupo principal
+  const canRef = useRef<Group>(null);
   
-  // Log model info for debugging
+  // Carregar o modelo GLTF
+  const { nodes, materials: gltfMaterials } = useGLTF("/models/can.gltf", true) as unknown as GLTFResult;
+  
+  // Configurações default por seção
+  const defaultConfigs: CanConfigs = {
+    inicio: { position: [0, 0, 10], rotation: [0, 0, 0], scale: 0.42 },
+    loja: { position: [0, 0, 10], rotation: [0, Math.PI * 0.5, 0], scale: 0.7 },
+    sobre: { position: [2, 0, 10], rotation: [0, Math.PI, 0], scale: 0.4 },
+    contato: { position: [0, 2, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.6 }
+  };
+  
+  // Usar configurações externas ou defaults
+  const configs = sectionConfigs || defaultConfigs;
+  
+  // Estados para animação
+  const [targetPosition, setTargetPosition] = useState([0, 0, 0]);
+  const [targetRotation, setTargetRotation] = useState([0, 0, 0]);
+  const [targetScale, setTargetScale] = useState(0.42);
+  
+  // Estados para textura e material
+  const [baseColorTexture, setBaseColorTexture] = useState<THREE.Texture | null>(null);
+  const [materialLoaded, setMaterialLoaded] = useState(false);
+  
+  // Carregar a textura explicitamente
   useEffect(() => {
-    console.log('Loaded Coca-Cola Can model:', { scene, nodes, materials })
-  }, [scene, nodes, materials])
-  
-  // We'll use the original texture (material base color.jpeg) from the model
-  // No need to load the STEEZ label texture
-  
-  // State to track when materials are ready to be modified
-  const [materialsReady, setMaterialsReady] = useState(false)
-  
-  // Check and verify texture paths, keep original material base color.jpeg
-  useEffect(() => {
-    // Verify that textures are available in the specified path
-    console.log(`Verifying textures in path: ${texturePath}`)
-    
-    if (materials && Object.keys(materials).length > 0) {
-      console.log('Available materials:', Object.keys(materials))
-      console.log('Material textures:', Object.keys(materials).map(key => ({
-        material: key,
-        hasTexture: Boolean(materials[key].map),
-        textureInfo: materials[key].map ? {
-          uuid: materials[key].map.uuid,
-          name: materials[key].map.name,
-          image: materials[key].map.image ? 'Image loaded' : 'No image',
-          path: materials[key].map.image && materials[key].map.image.src ? materials[key].map.image.src : 'Path unknown'
-        } : 'No texture'
-      })))
-      
-      // Enhance materials but keep original textures
-      try {
-        Object.keys(materials).forEach(key => {
-          const material = materials[key] as MeshStandardMaterial
-          
-          // Keep original textures but enhance material properties
-          if (material.map) {
-            console.log(`Enhancing material: ${key}`)
-            // Enhance material metalness and roughness to highlight textures
-            material.metalness = 0.8
-            material.roughness = 0.2
-            material.envMapIntensity = 1.5 // Increase reflection intensity
-            material.needsUpdate = true
-          }
-        })
-        
-        console.log('Material enhancement completed successfully')
-        setMaterialsReady(true)
-      } catch (error) {
-        console.error('Error enhancing materials:', error)
-        // Still mark as ready
-        setMaterialsReady(true)
+    const textureLoader = new TextureLoader();
+    textureLoader.load(
+      '/models/textures/material_baseColor.jpeg',
+      (texture) => {
+        console.log("Textura base color carregada com sucesso");
+        texture.flipY = false; // Importante para GLTF
+        setBaseColorTexture(texture);
+        setMaterialLoaded(true);
+      },
+      // Progress callback
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total * 100) + '% da textura carregada');
+      },
+      // Error callback
+      (error) => {
+        console.error("Erro ao carregar textura:", error);
+        setMaterialLoaded(true); // Continuar mesmo com erro
       }
+    );
+    
+    // Cleanup
+    return () => {
+      if (baseColorTexture) {
+        baseColorTexture.dispose();
+      }
+    };
+  }, []);
+  
+  // Materiais personalizados - um para o corpo da lata e um para o anel
+  const customMaterials = useMemo(() => {
+    // Material principal com a textura base color
+    const baseMaterial = new MeshStandardMaterial({
+      color: new Color(0xffffff),
+      roughness: 0.3,
+      metalness: 0.7
+    });
+    
+    // Material metálico rosa para o anel (#F42153) - Versão mais brilhante
+    const pinkMaterial = new MeshPhysicalMaterial({
+      color: new Color("#F42153"),
+      roughness: 0.05,
+      metalness: 1.0,
+      reflectivity: 1.0,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.1,
+      envMapIntensity: 2.0,
+      emissive: new Color("#F42153").multiplyScalar(0.3),
+      emissiveIntensity: 0.8
+    });
+    
+    // Aplicar a textura ao material base se estiver disponível
+    if (baseColorTexture) {
+      baseMaterial.map = baseColorTexture;
+      baseMaterial.needsUpdate = true;
     }
-  }, [materials, texturePath])
+    
+    return { baseMaterial, pinkMaterial };
+  }, [baseColorTexture]);
+  
+  // Atualizar alvos quando a seção muda
+  useEffect(() => {
+    if (configs[activeSection]) {
+      setTargetPosition(configs[activeSection].position);
+      setTargetRotation(configs[activeSection].rotation);
+      setTargetScale(configs[activeSection].scale);
+    }
+  }, [activeSection, configs]);
+  
+  // Calcular centro geométrico
+  const centerPoint = useMemo(() => {
+    const meshKeys = Object.keys(nodes).filter(key => nodes[key].isMesh);
+    if (meshKeys.length === 0) return [0, 0, 0];
+    
+    let xSum = 0, ySum = 0, zSum = 0;
+    let count = 0;
+    
+    meshKeys.forEach(key => {
+      if (nodes[key].position) {
+        xSum += nodes[key].position.x;
+        ySum += nodes[key].position.y;
+        zSum += nodes[key].position.z;
+        count++;
+      }
+    });
+    
+    return count > 0 ? [xSum / count, ySum / count, zSum / count] : [0, 0, 0];
+  }, [nodes]);
+  
+  // Animar o modelo a cada frame
+  useFrame((state, delta) => {
+    if (!canRef.current) return;
+    
+    const speed = 0.05;
+    
+    // Posição ajustada pelo centro
+    const adjustedPosition = [
+      targetPosition[0] + centerPoint[0], 
+      targetPosition[1] + centerPoint[1], 
+      targetPosition[2] + centerPoint[2]
+    ];
+    
+    // Animar posição
+    canRef.current.position.x += (adjustedPosition[0] - canRef.current.position.x) * speed;
+    canRef.current.position.y += (adjustedPosition[1] - canRef.current.position.y) * speed;
+    canRef.current.position.z += (adjustedPosition[2] - canRef.current.position.z) * speed;
+    
+    // Animar rotação (com efeito de scroll)
+    const yRotationWithScroll = targetRotation[1] + scrollY * 0.001;
+    canRef.current.rotation.x += (targetRotation[0] - canRef.current.rotation.x) * speed;
+    canRef.current.rotation.y += (yRotationWithScroll - canRef.current.rotation.y) * speed;
+    canRef.current.rotation.z += (targetRotation[2] - canRef.current.rotation.z) * speed;
+    
+    // Animar escala
+    const currentScale = canRef.current.scale.x;
+    const newScale = currentScale + (targetScale - currentScale) * speed;
+    canRef.current.scale.set(newScale, newScale, newScale);
+  });
+  
+  // Aplicar materiais aos meshes com abordagem forçada
+  useEffect(() => {
+    // Inspecionar todas as partes do modelo
+    Object.keys(nodes).forEach(key => {
+      if (nodes[key].isMesh) {
+        // Verificar pela posição Y para identificar o anel superior
+        const isTopPart = nodes[key].position && nodes[key].position.y > 0.5;
+        
+        console.log(`Mesh "${key}" - Posição Y: ${nodes[key].position?.y} - É parte superior: ${isTopPart}`);
+        
+        // Para qualquer parte que esteja na metade superior da lata, aplicar material rosa
+        if (isTopPart) {
+          console.log(`Aplicando material rosa ao mesh "${key}"`);
+          nodes[key].material = customMaterials.pinkMaterial;
+        } else {
+          nodes[key].material = customMaterials.baseMaterial;
+        }
+      }
+    });
+  }, [nodes, customMaterials]);
 
+  // Meshes memoizados centrados
+  const meshes = useMemo(() => {
+    // Log para ajudar na depuração
+    console.log("Meshes disponíveis:", Object.keys(nodes).filter(key => nodes[key].isMesh));
+    
+    return Object.keys(nodes)
+      .filter(key => nodes[key].isMesh)
+      .map(key => {
+        // Verificar qual material usar com base no nome do mesh e posição
+        // Estratégia completa para identificar o anel da lata
+        const isRing = key.toLowerCase().includes('ring') || 
+                       key.toLowerCase().includes('top') || 
+                       key.toLowerCase().includes('lid') ||
+                       key.toLowerCase().includes('cap') ||
+                       key.toLowerCase().includes('anel') ||
+                       key.toLowerCase().includes('borda');
+        
+        // Lista muito abrangente de nomes possíveis para o anel
+        const forceRing = [
+          'pull_tab', 'ring_top', 'can_lid', 'can_top', 
+          'tab', 'lid', 'anel_superior', 'top', 'upper',
+          'circle', 'ring', 'opening', 'opener', 'pull',
+          'Cylinder', 'Cylinder001', 'Cylinder002'
+        ].some(name => key.includes(name));
+        
+        // Usar material pink para o anel, base material para o resto
+        const meshMaterial = isRing || forceRing ? customMaterials.pinkMaterial : customMaterials.baseMaterial;
+        
+        return (
+          <mesh
+            key={key}
+            castShadow
+            receiveShadow
+            geometry={nodes[key].geometry}
+            material={meshMaterial || nodes[key].material || gltfMaterials[key]}
+            position={[
+              nodes[key].position.x - centerPoint[0],
+              nodes[key].position.y - centerPoint[1],
+              nodes[key].position.z - centerPoint[2]
+            ]}
+            rotation={nodes[key].rotation}
+            scale={nodes[key].scale}
+          />
+        );
+      });
+  }, [nodes, customMaterials, centerPoint]);
+  
+  // Criar um anel rosa manualmente como fallback
+  const ringGeometry = useMemo(() => new THREE.TorusGeometry(0.5, 0.1, 16, 100), []);
+  
+  console.log("Debug return structure");
   return (
-    <group dispose={null}>
-      {/* Render the complete scene with all its objects */}
-      {scene && materialsReady ? (
-        <primitive object={scene} />
-      ) : (
-        /* Fallback rendering when using direct nodes */
-        nodes && Object.keys(nodes).map(key => {
-          // Skip non-mesh nodes
-          if (!nodes[key].isMesh) return null
-          
-          const node = nodes[key] as Mesh
-          
-          return (
-            <mesh 
-              key={key}
-              geometry={node.geometry}
-              material={node.material}
-              position={node.position}
-              rotation={node.rotation}
-              scale={node.scale}
-            />
-          )
-        })
-      )}
+    <group ref={canRef} dispose={null}>
+ 
+      {/* Meshes do modelo */}
+      {meshes}
+      
+      
     </group>
-  )
+  );
 }
 
-export function AnimatedCan({ scrollY }: AnimatedCanProps) {
-  const groupRef = useRef<Group>(null)
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      // Calculate scroll progress through the hero section (0 to 1)
-      const heroHeight = window.innerHeight
-      const scrollProgress = Math.min(scrollY / heroHeight, 1)
-
-      // Z-axis rotation: Start horizontally and rotate 180 degrees based on scroll
-      const initialZRotation = Math.PI / 2 // 90 degrees (horizontal)
-      const zRotationRange = Math.PI // 180 degrees rotation
-      groupRef.current.rotation.z = initialZRotation + scrollProgress * zRotationRange
-
-      // X-axis rotation: 360 degrees based on scroll
-      const xRotationRange = Math.PI * 1 // 360 degrees
-      groupRef.current.rotation.x = scrollProgress * xRotationRange + 90
-
-      // Subtle Y-axis rotation for depth
-      groupRef.current.rotation.y = scrollProgress * 0.5
-
-      // Floating animation (reduced intensity)
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05
-
-      // Scale based on scroll progress
-      const scale = 1 + scrollProgress * 0.2
-      groupRef.current.scale.setScalar(scale)
-    }
-  })
-
-  return (
-    <group ref={groupRef} position={[6, 10, 10]}>
-      {/* Ultra bright environment lighting */}
-      <ambientLight intensity={9.2} color="#ffffff" />
-      
-      {/* Main directional light (simulates sun) */}
-      <directionalLight 
-        position={[10, 15, 5]} 
-        intensity={3.0} 
-        color="#ffffff"
-        castShadow
-      />
-      
-      {/* Fill light from top */}
-      <pointLight 
-        position={[0, 15, 0]} 
-        intensity={2.5} 
-        color="#ffffff" 
-        distance={20}
-        decay={1}
-      />
-      
-      {/* Rim light from right */}
-      <pointLight 
-        position={[8, 5, 5]} 
-        intensity={2.0} 
-        color="#f0f8ff" 
-        distance={15}
-        decay={1}
-      />
-      
-      {/* Highlight light from left - increased power */}
-      <pointLight 
-        position={[-5, 2, 2]} 
-        intensity={8.0} 
-        color="#ffffff" 
-        distance={10}
-        decay={0}
-      />
-      
-      {/* Front fill light for label visibility */}
-      <pointLight 
-        position={[0, 0, 8]} 
-        intensity={3.0} 
-        color="#ffffff" 
-        distance={12}
-        decay={1}
-      />
-      
-      {/* Soft backlight for depth */}
-      <pointLight 
-        position={[-2, 3, -6]} 
-        intensity={2.0} 
-        color="#e6f0ff" 
-        distance={15}
-        decay={1}
-      />
-
-      {/* 3D Soda Can Model */}
-      <SodaCanModel />
-    </group>
-  )
-}
+// Pré-carregar o modelo
+useGLTF.preload("/models/can.gltf");
