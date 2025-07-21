@@ -1,56 +1,104 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useFrame, useLoader } from "@react-three/fiber"
-import { TextureLoader } from "three"
-import type { Group } from "three"
+import { useGLTF } from "@react-three/drei"
+import { TextureLoader, Mesh, MeshStandardMaterial } from "three"
+import type { Group, Material } from "three"
 
 interface AnimatedCanProps {
   scrollY: number
 }
 
-// Simple 3D Soda Can Component with STEEZ Label Texture
+// 3D Coca-Cola Can Component using GLTF model
 function SodaCanModel() {
-  // Load the STEEZ label texture
-  const labelTexture = useLoader(TextureLoader, "/images/steez-label.png")
+  // Load the Coca-Cola Can GLTF model with proper texture handling
+  const modelPath = '/models/coca-cola_can.gltf'
+  // Define texture path for loading textures correctly
+  const texturePath = '/models/textures/'
+  // Load the model with all its assets (textures, materials)
+  const { scene, nodes, materials } = useGLTF(modelPath, true) as any
+  
+  // Log model info for debugging
+  useEffect(() => {
+    console.log('Loaded Coca-Cola Can model:', { scene, nodes, materials })
+  }, [scene, nodes, materials])
+  
+  // We'll use the original texture (material base color.jpeg) from the model
+  // No need to load the STEEZ label texture
+  
+  // State to track when materials are ready to be modified
+  const [materialsReady, setMaterialsReady] = useState(false)
+  
+  // Check and verify texture paths, keep original material base color.jpeg
+  useEffect(() => {
+    // Verify that textures are available in the specified path
+    console.log(`Verifying textures in path: ${texturePath}`)
+    
+    if (materials && Object.keys(materials).length > 0) {
+      console.log('Available materials:', Object.keys(materials))
+      console.log('Material textures:', Object.keys(materials).map(key => ({
+        material: key,
+        hasTexture: Boolean(materials[key].map),
+        textureInfo: materials[key].map ? {
+          uuid: materials[key].map.uuid,
+          name: materials[key].map.name,
+          image: materials[key].map.image ? 'Image loaded' : 'No image',
+          path: materials[key].map.image && materials[key].map.image.src ? materials[key].map.image.src : 'Path unknown'
+        } : 'No texture'
+      })))
+      
+      // Enhance materials but keep original textures
+      try {
+        Object.keys(materials).forEach(key => {
+          const material = materials[key] as MeshStandardMaterial
+          
+          // Keep original textures but enhance material properties
+          if (material.map) {
+            console.log(`Enhancing material: ${key}`)
+            // Enhance material metalness and roughness to highlight textures
+            material.metalness = 0.8
+            material.roughness = 0.2
+            material.envMapIntensity = 1.5 // Increase reflection intensity
+            material.needsUpdate = true
+          }
+        })
+        
+        console.log('Material enhancement completed successfully')
+        setMaterialsReady(true)
+      } catch (error) {
+        console.error('Error enhancing materials:', error)
+        // Still mark as ready
+        setMaterialsReady(true)
+      }
+    }
+  }, [materials, texturePath])
 
   return (
-    <group>
-      {/* Main Can Body */}
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.8, 0.8, 2.5, 32]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-
-      {/* Label Area with STEEZ Texture */}
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.81, 0.81, 2.2, 32]} />
-        <meshStandardMaterial map={labelTexture} />
-      </mesh>
-
-      {/* Can Top */}
-      <mesh position={[0, 1.25, 0]}>
-        <cylinderGeometry args={[0.8, 0.8, 0.1, 32]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-
-      {/* Can Bottom */}
-      <mesh position={[0, -1.25, 0]}>
-        <cylinderGeometry args={[0.8, 0.8, 0.1, 32]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-
-      {/* Top Ring */}
-      <mesh position={[0, 1.2, 0]}>
-        <cylinderGeometry args={[0.82, 0.82, 0.05, 32]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
-
-      {/* Bottom Ring */}
-      <mesh position={[0, -1.2, 0]}>
-        <cylinderGeometry args={[0.82, 0.82, 0.05, 32]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh>
+    <group dispose={null}>
+      {/* Render the complete scene with all its objects */}
+      {scene && materialsReady ? (
+        <primitive object={scene} />
+      ) : (
+        /* Fallback rendering when using direct nodes */
+        nodes && Object.keys(nodes).map(key => {
+          // Skip non-mesh nodes
+          if (!nodes[key].isMesh) return null
+          
+          const node = nodes[key] as Mesh
+          
+          return (
+            <mesh 
+              key={key}
+              geometry={node.geometry}
+              material={node.material}
+              position={node.position}
+              rotation={node.rotation}
+              scale={node.scale}
+            />
+          )
+        })
+      )}
     </group>
   )
 }
@@ -86,12 +134,62 @@ export function AnimatedCan({ scrollY }: AnimatedCanProps) {
   })
 
   return (
-    <group ref={groupRef}>
-      {/* Enhanced Lighting for better texture visibility */}
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[10, 10, 5]} intensity={1.3} />
-      <pointLight position={[-10, -10, -5]} intensity={0.7} />
-      <pointLight position={[5, 0, 5]} intensity={0.5} color="#ffffff" />
+    <group ref={groupRef} position={[6, 10, 10]}>
+      {/* Ultra bright environment lighting */}
+      <ambientLight intensity={9.2} color="#ffffff" />
+      
+      {/* Main directional light (simulates sun) */}
+      <directionalLight 
+        position={[10, 15, 5]} 
+        intensity={3.0} 
+        color="#ffffff"
+        castShadow
+      />
+      
+      {/* Fill light from top */}
+      <pointLight 
+        position={[0, 15, 0]} 
+        intensity={2.5} 
+        color="#ffffff" 
+        distance={20}
+        decay={1}
+      />
+      
+      {/* Rim light from right */}
+      <pointLight 
+        position={[8, 5, 5]} 
+        intensity={2.0} 
+        color="#f0f8ff" 
+        distance={15}
+        decay={1}
+      />
+      
+      {/* Highlight light from left - increased power */}
+      <pointLight 
+        position={[-5, 2, 2]} 
+        intensity={8.0} 
+        color="#ffffff" 
+        distance={10}
+        decay={0}
+      />
+      
+      {/* Front fill light for label visibility */}
+      <pointLight 
+        position={[0, 0, 8]} 
+        intensity={3.0} 
+        color="#ffffff" 
+        distance={12}
+        decay={1}
+      />
+      
+      {/* Soft backlight for depth */}
+      <pointLight 
+        position={[-2, 3, -6]} 
+        intensity={2.0} 
+        color="#e6f0ff" 
+        distance={15}
+        decay={1}
+      />
 
       {/* 3D Soda Can Model */}
       <SodaCanModel />
