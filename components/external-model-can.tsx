@@ -62,20 +62,7 @@ export function ExternalModelCan({ scrollY }: ExternalModelCanProps) {
         <ExternalBottleModel />
       </Suspense>
 
-      {/* Floating Label */}
-      <group ref={labelRef} position={[0, 1.5, 0]}>
-        <Text
-          fontSize={0.3}
-          color="#000000"
-          anchorX="center"
-          anchorY="center"
-          font="/fonts/Geist-Bold.ttf"
-          outlineWidth={0.02}
-          outlineColor="#ffffff"
-        >
-          STEEZ
-        </Text>
-      </group>
+     
     </group>
   )
 }

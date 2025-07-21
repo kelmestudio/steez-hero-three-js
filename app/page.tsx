@@ -8,48 +8,94 @@ import { ShoppingCart, ChevronDown } from "lucide-react";
 
 export default function HeroSection() {
 	const [scrollY, setScrollY] = useState(0);
-	const heroRef = useRef<HTMLDivElement>(null);
+	const mainContainerRef = useRef<HTMLDivElement>(null);
 
+	// Unifica o evento de scroll para animação da lata
 	useEffect(() => {
 		const handleScroll = () => {
-			setScrollY(window.scrollY);
+			requestAnimationFrame(() => {
+				setScrollY(window.scrollY);
+			});
 		};
 
-		window.addEventListener("scroll", handleScroll);
+		window.addEventListener("scroll", handleScroll, { passive: true });
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
+	// Gerencia navegação por scroll
+	useEffect(() => {
+		const container = mainContainerRef.current;
+		const sections = ["inicio", "loja", "sobre", "contato"];
+
+		const handleWheel = (e: WheelEvent) => {
+			if (!container) return;
+			e.preventDefault();
+			
+			const direction = e.deltaY > 0 ? 1 : -1;
+			const currentSection = sections.find((id) => {
+				const element = document.getElementById(id);
+				if (!element) return false;
+				const rect = element.getBoundingClientRect();
+				return rect.top <= 100 && rect.bottom >= 100;
+			});
+			
+			const currentIndex = sections.indexOf(currentSection || "inicio");
+			const targetIndex = Math.max(0, Math.min(sections.length - 1, currentIndex + direction));
+			
+			if (currentIndex !== targetIndex) {
+				scrollToSection(sections[targetIndex]);
+			}
+		};
+
+		if (container) {
+			container.addEventListener("wheel", handleWheel, { passive: false });
+		}
+
+		return () => {
+			if (container) {
+				container.removeEventListener("wheel", handleWheel);
+			}
+		};
+	}, []);
+
+	const scrollToSection = (id: string) => {
+		const element = document.getElementById(id);
+		if (element) {
+			element.scrollIntoView({ behavior: "auto" });
+		}
+	};
+
 	return (
-		<div className="min-h-screen bg-gray-100 relative overflow-hidden">
+		<div ref={mainContainerRef} className="h-screen overflow-y-auto scroll-smooth snap-y snap-always snap-mandatory overflow-x-hidden overscroll-y-contain scroll-pt-16">
 			{/* Navigation */}
 			<nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200">
 				<div className="container mx-auto px-6 py-4 flex items-center justify-between">
 					<div className="text-2xl font-bold text-black">STEEZ</div>
 					<div className="hidden md:flex items-center space-x-8">
-						<a
-							href="#"
+						<button
+							onClick={() => scrollToSection("inicio")}
 							className="text-sm font-medium text-black hover:text-red-500 transition-colors border-b-2 border-red-500"
 						>
 							INÍCIO
-						</a>
-						<a
-							href="#"
+						</button>
+						<button
+							onClick={() => scrollToSection("loja")}
 							className="text-sm font-medium text-gray-600 hover:text-red-500 transition-colors"
 						>
 							LOJA
-						</a>
-						<a
-							href="#"
+						</button>
+						<button
+							onClick={() => scrollToSection("sobre")}
 							className="text-sm font-medium text-gray-600 hover:text-red-500 transition-colors"
 						>
 							SOBRE NÓS
-						</a>
-						<a
-							href="#"
+						</button>
+						<button
+							onClick={() => scrollToSection("contato")}
 							className="text-sm font-medium text-gray-600 hover:text-red-500 transition-colors"
 						>
 							CONTATO
-						</a>
+						</button>
 					</div>
 					<div className="flex items-center space-x-4">
 						<span className="text-sm font-medium">CARRINHO</span>
@@ -65,8 +111,8 @@ export default function HeroSection() {
 
 			{/* Hero Section */}
 			<div
-				ref={heroRef}
-				className="relative h-screen flex items-center justify-center pt-20"
+				id="inicio"
+				className="relative h-screen flex items-center justify-center pt-20 snap-start"
 			>
 				{/* Background Pattern */}
 				<div className="absolute inset-0 opacity-5">
@@ -75,18 +121,16 @@ export default function HeroSection() {
 					</div>
 				</div>
 
-        <div className=" fixed inset-0 w-full h-[400px] z-10">
-						<Canvas
-							camera={{ position: [0, 1, 50], fov: 16 }}
-							style={{ width: "100%", height: "100%" }}
-						>
-							<Suspense fallback={null}>
-								<AnimatedCan scrollY={scrollY} />
-							</Suspense>
-						</Canvas>
-				</div>
-
-				{/* Main Content */}
+				<div className="fixed inset-0 w-full h-[400px] pointer-events-none z-10">
+					<Canvas
+						camera={{ position: [0, 1, 50], fov: 16 }}
+						style={{ width: "100%", height: "100%" }}
+					>
+						<Suspense fallback={null}>
+							<AnimatedCan scrollY={scrollY} />
+						</Suspense>
+					</Canvas>
+				</div>				{/* Main Content */}
 				<div className="relative z-4 text-center max-w-6xl mx-auto px-6">
 					{/* Tagline */}
 					<div className="mb-8">
@@ -130,20 +174,72 @@ export default function HeroSection() {
 					</p>
 
 					{/* Scroll Indicator */}
-					<div className="animate-bounce">
-						<ChevronDown className="w-8 h-8 text-gray-400 mx-auto" />
+					<div
+						className="animate-bounce cursor-pointer"
+						onClick={() => scrollToSection("loja")}
+					>
+						<ChevronDown className="w-8 h-8 text-gray-400 mx-auto hover:text-red-500 transition-colors" />
 					</div>
 				</div>
 			</div>
 
 			{/* Additional Content for Scroll Effect */}
-			<div className="h-screen bg-white flex items-center justify-center">
+			<div
+				id="loja"
+				className="h-screen bg-white flex items-center justify-center snap-start"
+			>
 				<div className="text-center">
 					<h2 className="text-4xl font-bold text-gray-900 mb-4">
-						Scroll to see the magic
+						Deslize para ver a mágica
+					</h2>
+					<p className="text-xl text-gray-600 mb-8">
+						A lata se anima enquanto você desliza!
+					</p>
+
+					{/* Scroll Indicator */}
+					<div
+						className="animate-bounce cursor-pointer"
+						onClick={() => scrollToSection("sobre")}
+					>
+						<ChevronDown className="w-8 h-8 text-gray-400 mx-auto hover:text-red-500 transition-colors" />
+					</div>
+				</div>
+			</div>
+
+			{/* Terceira Seção */}
+			<div
+				id="sobre"
+				className="h-screen bg-gray-100 flex items-center justify-center snap-start"
+			>
+				<div className="text-center">
+					<h2 className="text-4xl font-bold text-gray-900 mb-4">
+						Experimente o sabor
+					</h2>
+					<p className="text-xl text-gray-600 mb-8">
+						Refrescante e energizante, a qualquer momento!
+					</p>
+					
+					{/* Scroll Indicator */}
+					<div
+						className="animate-bounce cursor-pointer"
+						onClick={() => scrollToSection("contato")}
+					>
+						<ChevronDown className="w-8 h-8 text-gray-400 mx-auto hover:text-red-500 transition-colors" />
+					</div>
+				</div>
+			</div>
+
+			{/* Quarta Seção - Contato */}
+			<div
+				id="contato"
+				className="h-screen bg-white flex items-center justify-center snap-start"
+			>
+				<div className="text-center">
+					<h2 className="text-4xl font-bold text-gray-900 mb-4">
+						Entre em contato
 					</h2>
 					<p className="text-xl text-gray-600">
-						The can animates as you scroll!
+						Estamos aqui para responder todas as suas dúvidas!
 					</p>
 				</div>
 			</div>
