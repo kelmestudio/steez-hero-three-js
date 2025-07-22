@@ -28,82 +28,140 @@ export default function HeroSection() {
 	
 	const [canConfigs, setCanConfigs] = useState(defaultCanConfigs);
 
-	// Helper simples para encontrar a seção visível atual
+	// Referência para controlar a direção do scroll (movida para fora da função de callback)
+	const scrollDirection = useRef({ lastY: window.scrollY, direction: 0 });	// Helper otimizado para encontrar a seção que está entrando no viewport (antecipando a detecção)
 	const getCurrentSection = useCallback(() => {
-		// Simplificação máxima: vamos apenas verificar qual seção tem o topo mais próximo de 0
-		// Isso funciona bem com scroll snap, que alinha o topo das seções
+		// Busca a seção que está se aproximando do viewport, não apenas a que já está visível
 		let bestSection = "inicio";
-		let smallestTopDistance = Infinity;
+		let bestScore = -Infinity;
+		const viewportHeight = window.innerHeight;
 		
-		SECTIONS.forEach((id) => {
+		// Determina a direção do scroll
+		const currentY = window.scrollY;
+		const currentDirection = scrollDirection.current;
+		
+		if (currentY > currentDirection.lastY) {
+			currentDirection.direction = 1; // Scroll para baixo
+		} else if (currentY < currentDirection.lastY) {
+			currentDirection.direction = -1; // Scroll para cima
+		}
+		currentDirection.lastY = currentY;
+		
+		for (const id of SECTIONS) {
 			const element = document.getElementById(id);
-			if (!element) return;
+			if (!element) continue;
 			
 			const rect = element.getBoundingClientRect();
+			const topDistance = rect.top;
 			
-			// Distância absoluta do topo da seção até o topo da viewport
-			const topDistance = Math.abs(rect.top);
-			
-			// A seção com topo mais próximo de 0 é provavelmente a que está em foco
-			if (topDistance < smallestTopDistance) {
-				smallestTopDistance = topDistance;
-				bestSection = id;
+			// Seção já está no topo (visível)
+			if (Math.abs(topDistance) < 10) {
+				return id;
 			}
-		});
+			
+			// Seção está entrando no viewport de cima (scroll para baixo)
+			if (currentDirection.direction > 0 && rect.top > 0 && rect.top < viewportHeight * 0.6) {
+				// Favorece a seção que está entrando de cima quando rolamos para baixo
+				const score = (viewportHeight - rect.top) * 2;
+				if (score > bestScore) {
+					bestScore = score;
+					bestSection = id;
+				}
+			}
+			// Seção está entrando no viewport de baixo (scroll para cima)
+			else if (currentDirection.direction < 0 && rect.bottom < viewportHeight && rect.bottom > viewportHeight * 0.4) {
+				// Favorece a seção que está entrando de baixo quando rolamos para cima
+				const score = (viewportHeight - (viewportHeight - rect.bottom)) * 2;
+				if (score > bestScore) {
+					bestScore = score;
+					bestSection = id;
+				}
+			} 
+			// Seção está visível (com prioridade mais baixa que as seções em transição)
+			else if (rect.top < viewportHeight && rect.bottom > 0) {
+				const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+				const score = visibleHeight / viewportHeight;
+				if (score > bestScore) {
+					bestScore = score;
+					bestSection = id;
+				}
+			}
+		}
 		
 		return bestSection;
 	}, [SECTIONS]);
 
-	// Simplificação total do monitoramento de scroll
+	// Define a função scrollToSection antes de usá-la nos hooks
+	const scrollToSection = useCallback((id: string) => {
+		const element = document.getElementById(id);
+		if (element) {
+			// Comportamento suave para melhor experiência do usuário
+			element.scrollIntoView({ behavior: "smooth" });
+			
+			// Atualiza a seção ativa após o scroll
+			setTimeout(() => {
+				setActiveSection(id);
+			}, 250); // Tempo suficiente para o scroll terminar
+		}
+	}, []);
+	
+	// Monitoramento de scroll otimizado para detecção antecipada
 	useEffect(() => {
-		// Função básica para verificar qual seção está ativa
+		let lastSection = activeSection;
+		let animationFrameId: number;
+		
+		// Função que verifica continuamente se a seção está mudando
 		const checkSectionChange = () => {
-			// Atualiza o valor de scrollY para animações
+			// Atualiza a posição Y para animações
 			setScrollY(window.scrollY);
 			
-			// Obtém a seção visível atual
+			// Obtém a seção que está entrando no viewport (detecta antecipadamente)
 			const currentSection = getCurrentSection();
 			
-			// Só atualiza se realmente mudou
-			if (currentSection !== activeSection) {
-				console.log(`Seção alterada para: ${currentSection}`);
+			// Se a seção mudou, atualizamos imediatamente
+			if (currentSection !== lastSection) {
+				lastSection = currentSection;
 				setActiveSection(currentSection);
+				
+				// Dispara evento para atualização imediata da lata
+				const event = new CustomEvent('sectionTransitioning', { 
+					detail: { section: currentSection, configs: canConfigs, scrollY: window.scrollY } 
+				});
+				window.dispatchEvent(event);
 			}
-		};
-		
-		// Usa debounce simples para não sobrecarregar
-		let timeoutId: NodeJS.Timeout | null = null;
-		
-		const handleScroll = () => {
-			// Cancela qualquer timeout pendente
-			if (timeoutId) clearTimeout(timeoutId);
 			
-			// Define novo timeout para verificar após o scroll parar
-			timeoutId = setTimeout(checkSectionChange, 50);
+			// Continua verificando durante a animação de scroll
+			animationFrameId = requestAnimationFrame(checkSectionChange);
 		};
 		
-		// Verificação inicial
+		// Inicia monitoramento contínuo
 		checkSectionChange();
 		
-		// Adiciona listener para o evento de scroll
-		window.addEventListener("scroll", handleScroll, { passive: true });
-		window.addEventListener("resize", checkSectionChange, { passive: true });
-		
-		// Limpeza
-		return () => {
-			window.removeEventListener("scroll", handleScroll);
-			window.removeEventListener("resize", checkSectionChange);
-			if (timeoutId) clearTimeout(timeoutId);
+		// Eventos para reiniciar o monitoramento se necessário
+		const handleScrollStart = () => {
+			cancelAnimationFrame(animationFrameId);
+			checkSectionChange();
 		};
-	}, [getCurrentSection, activeSection]);
+		
+		window.addEventListener("scroll", handleScrollStart, { passive: true });
+		window.addEventListener("resize", handleScrollStart, { passive: true });
+		
+		// Limpa o monitoramento quando o componente é desmontado
+		return () => {
+			cancelAnimationFrame(animationFrameId);
+			window.removeEventListener("scroll", handleScrollStart);
+			window.removeEventListener("resize", handleScrollStart);
+		};
+	}, [getCurrentSection, activeSection, canConfigs]);
 
-	// Observa mudanças na seção ativa para atualizar a animação da lata
+	// Observa mudanças na seção ativa para atualizar a animação da lata imediatamente
 	useEffect(() => {
-		console.log(`Aplicando configuração para seção: ${activeSection}`);
-		// Se necessário, podemos adicionar aqui qualquer lógica adicional
-		// para garantir que a configuração da lata seja corretamente aplicada
-		// quando a seção ativa muda
-	}, [activeSection]);
+		// Força atualização imediata da animação 3D quando a seção muda
+		const event = new CustomEvent('sectionChanged', { 
+			detail: { section: activeSection, configs: canConfigs } 
+		});
+		window.dispatchEvent(event);
+	}, [activeSection, canConfigs]);
 	
 	// Gerencia navegação por teclado (teclas de seta)
 	useEffect(() => {
@@ -131,55 +189,56 @@ export default function HeroSection() {
 		
 		window.addEventListener('keydown', handleKeyDown);
 		return () => window.removeEventListener('keydown', handleKeyDown);
-	}, [getCurrentSection, SECTIONS]);	// Gerencia navegação por scroll
+	}, [getCurrentSection, SECTIONS, scrollToSection]);
+
+	// Gerencia navegação por scroll com otimização de desempenho
 	useEffect(() => {
 		const container = mainContainerRef.current;
+		if (!container) return;
+
+		// Variáveis para controle de throttle
+		let isScrolling = false;
+		let scrollTimeout: NodeJS.Timeout;
 
 		const handleWheel = (e: WheelEvent) => {
-			if (!container) return;
 			e.preventDefault();
 			
+			// Se já estiver rolando, ignore o evento
+			if (isScrolling) return;
+			isScrolling = true;
+			
+			// Determina a direção do scroll
 			const direction = e.deltaY > 0 ? 1 : -1;
 			const currentSection = getCurrentSection();
 			
+			// Calcula a próxima seção
 			const currentIndex = SECTIONS.indexOf(currentSection);
 			const targetIndex = Math.max(0, Math.min(SECTIONS.length - 1, currentIndex + direction));
 			
+			// Se houver mudança, navega para a nova seção
 			if (currentIndex !== targetIndex) {
 				scrollToSection(SECTIONS[targetIndex]);
 			}
-		};
-
-		if (container) {
-			container.addEventListener("wheel", handleWheel, { passive: false });
-		}
-
-		return () => {
-			if (container) {
-				container.removeEventListener("wheel", handleWheel);
-			}
-		};
-	}, [getCurrentSection, SECTIONS]);
-
-	// Memoizado para evitar recriação desnecessária
-	const scrollToSection = useCallback((id: string) => {
-		const element = document.getElementById(id);
-		if (element) {
-			// Comportamento suave para não quebrar o scroll snap
-			element.scrollIntoView({ behavior: "smooth" });
 			
-			// Atualiza a seção ativa após o scroll
-			setTimeout(() => {
-				setActiveSection(id);
-			}, 500); // Tempo suficiente para o scroll terminar
-		}
-	}, []);
+			// Reset do throttle após 500ms
+			clearTimeout(scrollTimeout);
+			scrollTimeout = setTimeout(() => {
+				isScrolling = false;
+			}, 500);
+		};
+
+		container.addEventListener("wheel", handleWheel, { passive: false });
+		
+		return () => {
+			container.removeEventListener("wheel", handleWheel);
+			clearTimeout(scrollTimeout);
+		};
+	}, [getCurrentSection, SECTIONS, scrollToSection]);
 
 	return (
 		<div 
 			ref={mainContainerRef} 
 			className="h-screen overflow-y-auto scroll-smooth snap-y snap-always snap-mandatory overflow-x-hidden overscroll-y-contain scroll-pt-16"
-			style={{ scrollSnapType: 'y mandatory' }}
 		>
 			{/* Navigation */}
 			<nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200">
@@ -268,19 +327,17 @@ export default function HeroSection() {
 					/>
 				)}
 				
-				{/* Indicador de mudança de seção (mais visível e com efeito de piscar) */}
+				{/* Indicador de seção ativa */}
 				<div 
-					key={activeSection} // Força recriação para efeito de animação
+					key={activeSection}
 					className="fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white py-2 px-6 rounded-full text-sm font-medium z-50 transition-all duration-500 animate-pulse"
 					style={{ 
-						opacity: 1, 
-						transition: 'opacity 0.5s ease, transform 0.5s ease, background-color 0.5s ease', 
+						opacity: 0.9,
 						pointerEvents: 'none',
 						boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-						animation: 'pulse 2s infinite',
 					}}
 				>
-					Seção ativa: {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+					{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
 				</div>
 				
 				<div className="fixed inset-0 w-full h-full pointer-events-none z-20">
