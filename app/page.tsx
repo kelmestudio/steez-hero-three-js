@@ -10,6 +10,7 @@ import Header from "@/components/header";
 import FAQSection from "@/components/faq-section";
 import Footer from "@/components/footer";
 import ScrollIndicator from "@/components/scroll-indicator";
+import { NoInteraction } from "@/lib/no-interaction";
 
 // Tipagem para melhorar segurança e autocompletar
 interface CanConfig {
@@ -463,15 +464,22 @@ export default function HeroSection() {
 				
 				{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
 				{(activeSection === 'faq' || !canConfigs[activeSection as keyof SectionConfigs]?.visible) ? null : (
-					<div className="fixed inset-0 w-full h-full pointer-events-none z-20">
+					<div 
+						className="fixed inset-0 w-full h-full pointer-events-none z-20"
+					>
 						<Canvas
 							camera={{ position: [0, 1, 50], fov: 16 }}
-							style={{ width: "100%", height: "100%" }}
+							style={{ 
+								width: "100%", 
+								height: "100%",
+								pointerEvents: "none" // Defina pointer-events como none diretamente no Canvas
+							}}
 							gl={{ preserveDrawingBuffer: true }}
 						>
 							<ambientLight intensity={3} />
 							<directionalLight position={[5, 15, 5]} intensity={9} />
 							<Suspense fallback={null}>
+								<NoInteraction />
 								<AnimatedCan 
 									scrollY={scrollY} 
 									activeSection={activeSection}

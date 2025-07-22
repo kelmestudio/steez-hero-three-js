@@ -250,6 +250,8 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: Animated
             ]}
             rotation={nodes[key].rotation}
             scale={nodes[key].scale}
+            // Adicionando a propriedade pointer-events para permitir que os cliques passem através da lata
+            raycast={() => null}
           />
         );
       });
@@ -260,12 +262,14 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: Animated
   
   console.log("Debug return structure");
   return (
-    <group ref={canRef} dispose={null}>
- 
+    <group 
+      ref={canRef} 
+      dispose={null}
+      visible={true}
+      raycast={null}
+    >
       {/* Meshes do modelo */}
       {meshes}
-      
-      
     </group>
   );
 }
