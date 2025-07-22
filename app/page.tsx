@@ -61,7 +61,7 @@ export default function HeroSection() {
 	
 	// Configurações padrão para o modelo 3D em cada seção
 	const defaultCanConfigs = useMemo<SectionConfigs>(() => ({
-		inicio: { position: [2.5, 1, 10], rotation: [1, 0, Math.PI * 0.5], scale: 0.42, visible: true },
+		inicio: { position: [2.3, 1.4, 10], rotation: [1, 0, Math.PI * 0.5], scale: 0.42, visible: true },
 		loja: { position: [-8, -4, 0], rotation: [0, Math.PI * 0.5, 0], scale: 0.6, visible: true },
 		sobre: { position: [-6, -4, 10], rotation: [0, Math.PI, 0], scale: 0.7, visible: true },
 		contato: { position: [0, 1, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.25, visible: true },
@@ -492,14 +492,15 @@ export default function HeroSection() {
 				{/* Main Content */}
 				<div className="relative z-4 text-center max-w-6xl mx-auto px-6">
 					{/* Tagline */}
-					<div className="mb-8">
+					
+						
+					
+
+					{/* Large Title with 3D Can */}
+					<div className="relative mb-12">
 						<p className="text-lg font-medium text-gray-700 tracking-wide">
 							ÁLCOOL SEM CULPA
 						</p>
-					</div>
-
-					{/* Large Typography with 3D Can */}
-					<div className="relative mb-12">
 						<div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-black text-red-500 leading-none select-none">
 							<span className="inline-block title-home px-10">PINK</span>
 						</div>

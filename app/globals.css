@@ -109,12 +109,10 @@ body {
 
 
 /* Estilo para todos os parágrafos do site */
-p, button {
+p, button, .text {
   font-family: 'Outfit';
   font-weight: 500;
   font-style: normal;
-  letter-spacing: -0.01em;
-  margin-bottom: 1em;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -136,9 +134,8 @@ h1, h2, h3, h4, h5, h6 {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
- font-family: "Montserrat", sans-serif;
   font-optical-sizing: auto;
-  font-family: 'HeadingNow';
+  font-family: 'HeadingNow', sans-serif;
   font-weight: 600;
   font-style: italic;
 }
