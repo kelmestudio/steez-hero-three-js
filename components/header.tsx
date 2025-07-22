@@ -37,6 +37,16 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
             LOJA
           </button>
           <button
+            onClick={() => scrollToSection("beneficios")}
+            className={`text-sm font-medium transition-colors border-b-2 py-1 ${
+              activeSection === "beneficios"
+                ? "text-black border-red-500"
+                : "text-gray-600 border-transparent hover:text-red-500"
+            }`}
+          >
+            BENEFÍCIOS
+          </button>
+          <button
             onClick={() => scrollToSection("sobre")}
             className={`text-sm font-medium transition-colors border-b-2 py-1 ${
               activeSection === "sobre"

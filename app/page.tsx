@@ -5,7 +5,7 @@ import { Suspense, useEffect, useRef, useState, useMemo, useCallback } from "rea
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, BanIcon, WheatOff, CandyOff, Zap } from "lucide-react";
 import Header from "@/components/header";
 import FAQSection from "@/components/faq-section";
 import Footer from "@/components/footer";
@@ -34,7 +34,7 @@ export default function HeroSection() {
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
 	
 	// Seções disponíveis no site - centralizado para evitar duplicação
-	const SECTIONS = ["inicio", "loja", "sobre", "contato", "faq"];
+	const SECTIONS = ["inicio", "loja", "beneficios", "sobre", "contato", "faq"];
 	
 	// Todas as seções incluindo o footer (para scroll snap, mas não para navegação)
 	const ALL_SECTIONS = [...SECTIONS, "footer"];
@@ -63,6 +63,7 @@ export default function HeroSection() {
 	const defaultCanConfigs = useMemo<SectionConfigs>(() => ({
 		inicio: { position: [2.3, 1.4, 10], rotation: [1, 0, Math.PI * 0.5], scale: 0.42, visible: true },
 		loja: { position: [-8, -4, 0], rotation: [0, Math.PI * 0.5, 0], scale: 0.6, visible: true },
+		beneficios: { position: [-6, -4, 0], rotation: [0, Math.PI * 0.25, 0], scale: 0.7, visible: true },
 		sobre: { position: [-6, -4, 10], rotation: [0, Math.PI, 0], scale: 0.7, visible: true },
 		contato: { position: [0, 1, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.25, visible: true },
 		faq: { position: [0, 0, 0], rotation: [0, 0, 0], scale: 0, visible: false }
@@ -547,7 +548,69 @@ export default function HeroSection() {
 					</p>
 
 					{/* Scroll Indicator */}
-					<ScrollIndicator onClick={() => scrollToSection("sobre")} section="sobre" />
+					<ScrollIndicator onClick={() => scrollToSection("beneficios")} section="beneficios" />
+				</div>
+			</div>
+
+			{/* Seção de Benefícios */}
+			<div
+				id="beneficios"
+				className="h-screen bg-gradient-to-b from-white to-pink-50 flex items-center justify-center snap-start snap-always overflow-hidden"
+			>
+				<div className="container mx-auto px-6 max-w-7xl">
+					<div className="flex flex-col md:flex-row-reverse  items-center justify-between gap-8 md:gap-16">
+						{/* Coluna de texto com os benefícios */}
+						<div className="w-full md:w-1/2 space-y-12 z-10">
+							<div className="text-left">
+								<div className="flex items-center mb-4">
+								
+									<span className="text-sm font-medium text-red-500 tracking-wide text">BENEFÍCIOS</span>
+								</div>
+								<h2 className="text-3xl md:text-5xl font-bold mb-3 tracking-tight">
+									STEEZ PINK É <span className="relative inline-block">
+										ZERO
+										<span className="absolute -bottom-1 left-0 w-full h-2 bg-red-500"></span>
+									</span>
+								</h2>
+								<p className="text-lg text-gray-600 mb-10">
+									Desfrute sem culpa. Criado para quem quer curtir com estilo e manter o equilíbrio.
+								</p>
+							</div>
+							
+							<div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20">
+								{/* Benefício 1 - Zero açúcares */}
+								<div className="flex flex-col items-center text-center group">
+									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
+										<CandyOff className="h-10 w-10" />
+									</div>
+									<h3 className="text-2xl font-bold">Zero açúcares</h3>
+								</div>
+								
+								{/* Benefício 2 - Zero glúten */}
+								<div className="flex flex-col items-center text-center group">
+									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
+										<WheatOff className="h-10 w-10" />
+									</div>
+									<h3 className="text-2xl font-bold">Zero glúten</h3>
+								</div>
+								
+								{/* Benefício 3 - Zero culpa */}
+								<div className="flex flex-col items-center text-center group">
+									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
+										<BanIcon className="h-10 w-10" />
+									</div>
+									<h3 className="text-2xl font-bold">Zero culpa</h3>
+								</div>
+							</div>
+
+	<div className="flex bottom-8 left-1/2 transform -translate-x-1/2">
+						<ScrollIndicator onClick={() => scrollToSection("sobre")} section="sobre" />
+					</div>
+
+						</div>
+					</div>
+					
+				
 				</div>
 			</div>
 
