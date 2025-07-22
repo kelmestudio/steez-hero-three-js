@@ -1,6 +1,10 @@
+
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 @layer base {
   :root {
@@ -68,10 +72,76 @@
   }
 }
 
+/* Importação da fonte Outfit do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
   overflow-x: hidden;
+}
+
+@font-face {
+  font-family: Outfit;
+  font-style: normal;
+  font-weight: 100 200 300 400 500 600 700 800 900;
+  font-display: swap;
+  src: url("/fonts/Outfit-VariableFont_wght.ttf") format("woff2");
+}
+
+
+@font-face {
+  font-family: HeadingNow;
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/HeadingNow-75MediumItalic.otf") format("woff2");
+}
+
+@font-face {
+  font-family: HeadingNow;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/HeadingNow-75Medium.otf") format("woff2");
+}
+
+
+
+
+/* Estilo para todos os parágrafos do site */
+p, button {
+  font-family: 'Outfit';
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: -0.01em;
+  margin-bottom: 1em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'HeadingNow';
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: -0.01em;
+  margin-bottom: 1em;
+}
+
+
+.title-home {
+  line-height: .8;
+  background: radial-gradient(
+    61.21% 50.29% at 54.13% 67.61%,
+    #c3002e 0%,
+    #f42153 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+ font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-family: 'HeadingNow';
+  font-weight: 600;
+  font-style: italic;
 }

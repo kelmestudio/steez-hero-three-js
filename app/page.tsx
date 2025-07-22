@@ -5,7 +5,9 @@ import { Suspense, useEffect, useRef, useState, useMemo, useCallback } from "rea
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, ChevronDown, Settings } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
+import Header from "@/components/header";
+
 
 export default function HeroSection() {
 	const [scrollY, setScrollY] = useState(0);
@@ -20,17 +22,38 @@ export default function HeroSection() {
 	
 	// Configurações padrão para o modelo 3D em cada seção
 	const defaultCanConfigs = useMemo(() => ({
-		inicio: { position: [2, 1, 10], rotation: [1, 0, Math.PI * 0.5], scale: 0.42 },
+		inicio: { position: [2.5, 1, 10], rotation: [1, 0, Math.PI * 0.5], scale: 0.42 },
 		loja: { position: [-8, -4, 0], rotation: [0, Math.PI * 0.5, 0], scale: 0.6 },
-		sobre: { position: [-8, -4, 10], rotation: [0, Math.PI, 0], scale: 0.7 },
+		sobre: { position: [-6, -4, 10], rotation: [0, Math.PI, 0], scale: 0.7 },
 		contato: { position: [0, 1, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.25 }
 	}), []);
 	
 	const [canConfigs, setCanConfigs] = useState(defaultCanConfigs);
 
-	// Referência para controlar a direção do scroll (movida para fora da função de callback)
-	const scrollDirection = useRef({ lastY: window.scrollY, direction: 0 });	// Helper otimizado para encontrar a seção que está entrando no viewport (antecipando a detecção)
+	// Referência para controlar a direção do scroll (com verificação para SSR)
+	const scrollDirection = useRef({ lastY: 0, direction: 0 });
+	
+	// Define a função scrollToSection antes de usá-la nos hooks
+	const scrollToSection = useCallback((id: string) => {
+		if (typeof document === 'undefined') return; // Verificação para SSR
+		
+		const element = document.getElementById(id);
+		if (element) {
+			// Comportamento suave para melhor experiência do usuário
+			element.scrollIntoView({ behavior: "smooth" });
+			
+			// Atualiza a seção ativa após o scroll
+			setTimeout(() => {
+				setActiveSection(id);
+			}, 250); // Tempo suficiente para o scroll terminar
+		}
+	}, []);
+	
+	// Helper otimizado para encontrar a seção que está entrando no viewport (antecipando a detecção)
 	const getCurrentSection = useCallback(() => {
+		// Verificar se estamos no navegador
+		if (typeof window === 'undefined') return "inicio";
+		
 		// Busca a seção que está se aproximando do viewport, não apenas a que já está visível
 		let bestSection = "inicio";
 		let bestScore = -Infinity;
@@ -90,23 +113,12 @@ export default function HeroSection() {
 		
 		return bestSection;
 	}, [SECTIONS]);
-
-	// Define a função scrollToSection antes de usá-la nos hooks
-	const scrollToSection = useCallback((id: string) => {
-		const element = document.getElementById(id);
-		if (element) {
-			// Comportamento suave para melhor experiência do usuário
-			element.scrollIntoView({ behavior: "smooth" });
-			
-			// Atualiza a seção ativa após o scroll
-			setTimeout(() => {
-				setActiveSection(id);
-			}, 250); // Tempo suficiente para o scroll terminar
-		}
-	}, []);
 	
 	// Monitoramento de scroll otimizado para detecção antecipada
 	useEffect(() => {
+		// Verificação de segurança para SSR
+		if (typeof window === 'undefined') return;
+		
 		let lastSection = activeSection;
 		let animationFrameId: number;
 		
@@ -156,6 +168,9 @@ export default function HeroSection() {
 
 	// Observa mudanças na seção ativa para atualizar a animação da lata imediatamente
 	useEffect(() => {
+		// Verificação de segurança para SSR
+		if (typeof window === 'undefined') return;
+		
 		// Força atualização imediata da animação 3D quando a seção muda
 		const event = new CustomEvent('sectionChanged', { 
 			detail: { section: activeSection, configs: canConfigs } 
@@ -165,6 +180,9 @@ export default function HeroSection() {
 	
 	// Gerencia navegação por teclado (teclas de seta)
 	useEffect(() => {
+		// Verificação de segurança para SSR
+		if (typeof window === 'undefined') return;
+		
 		const handleKeyDown = (e: KeyboardEvent) => {
 			// Arrow Up ou Arrow Down
 			if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -240,63 +258,8 @@ export default function HeroSection() {
 			ref={mainContainerRef} 
 			className="h-screen overflow-y-auto scroll-smooth snap-y snap-always snap-mandatory overflow-x-hidden overscroll-y-contain scroll-pt-16"
 		>
-			{/* Navigation */}
-			<nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-				<div className="container mx-auto px-6 py-4 flex items-center justify-between">
-					<div className="text-2xl font-bold text-black">STEEZ</div>
-					<div className="hidden md:flex items-center space-x-8">
-						<button
-							onClick={() => scrollToSection("inicio")}
-							className={`text-sm font-medium transition-colors border-b-2 ${
-								activeSection === "inicio"
-									? "text-black border-red-500"
-									: "text-gray-600 border-transparent hover:text-red-500"
-							}`}
-						>
-							INÍCIO
-						</button>
-						<button
-							onClick={() => scrollToSection("loja")}
-							className={`text-sm font-medium transition-colors border-b-2 ${
-								activeSection === "loja"
-									? "text-black border-red-500"
-									: "text-gray-600 border-transparent hover:text-red-500"
-							}`}
-						>
-							LOJA
-						</button>
-						<button
-							onClick={() => scrollToSection("sobre")}
-							className={`text-sm font-medium transition-colors border-b-2 ${
-								activeSection === "sobre"
-									? "text-black border-red-500"
-									: "text-gray-600 border-transparent hover:text-red-500"
-							}`}
-						>
-							SOBRE NÓS
-						</button>
-						<button
-							onClick={() => scrollToSection("contato")}
-							className={`text-sm font-medium transition-colors border-b-2 ${
-								activeSection === "contato"
-									? "text-black border-red-500"
-									: "text-gray-600 border-transparent hover:text-red-500"
-							}`}
-						>
-							CONTATO
-						</button>
-					</div>
-					<div className="flex items-center space-x-4">
-						<span className="text-sm font-medium">CARRINHO</span>
-						<div className="relative">
-							<ShoppingCart className="w-6 h-6" />
-							<span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-								0
-							</span>
-						</div>
-					</div>
-				</div>
-			</nav>
+			{/* Header com navegação */}
+			<Header activeSection={activeSection} scrollToSection={scrollToSection} />
 
 			{/* Hero Section */}
 			<div
@@ -330,7 +293,7 @@ export default function HeroSection() {
 				{/* Indicador de seção ativa */}
 				<div 
 					key={activeSection}
-					className="fixed top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white py-2 px-6 rounded-full text-sm font-medium z-50 transition-all duration-500 animate-pulse"
+					className="fixed hidden top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white py-2 px-6 rounded-full text-sm font-medium z-50 transition-all duration-500 animate-pulse"
 					style={{ 
 						opacity: 0.9,
 						pointerEvents: 'none',
@@ -346,8 +309,8 @@ export default function HeroSection() {
 						style={{ width: "100%", height: "100%" }}
 						gl={{ preserveDrawingBuffer: true }}
 					>
-						<ambientLight intensity={5} />
-						<directionalLight position={[5, 5, 5]} intensity={5} />
+						<ambientLight intensity={3} />
+						<directionalLight position={[5, 15, 5]} intensity={9} />
 						<Suspense fallback={null}>
 							<AnimatedCan 
 								scrollY={scrollY} 
@@ -368,12 +331,7 @@ export default function HeroSection() {
 					{/* Large Typography with 3D Can */}
 					<div className="relative mb-12">
 						<div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-black text-red-500 leading-none select-none">
-							<span className="inline-block">P</span>
-							<span className="inline-block">I</span>
-							<span className="inline-block relative">
-								N{/* 3D Can Container */}
-							</span>
-							<span className="inline-block">K</span>
+							<span className="inline-block title-home px-10">PINK</span>
 						</div>
 					</div>
 
