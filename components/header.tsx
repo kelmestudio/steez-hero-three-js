@@ -66,6 +66,7 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
             </span>
           </div>
         </a>
+     
       </div>
     </nav>
   );
