@@ -52,7 +52,7 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
                 : "text-gray-600 border-transparent hover:text-red-500"
             }`}
           >
-            CONTATO
+            CONTACTO
           </button>
         </div>
         <div className="flex items-center space-x-4">

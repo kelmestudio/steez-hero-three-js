@@ -6,7 +6,6 @@ import { useRef, useState, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { Group, Mesh, MeshStandardMaterial, MeshPhysicalMaterial, TextureLoader, Color } from "three";
 import { GLTF } from "three-stdlib";
-import { LightingSetup } from "./lighting-setup";
 
 type GLTFResult = GLTF & {
   nodes: {

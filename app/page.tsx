@@ -5,8 +5,23 @@ import { Suspense, useEffect, useRef, useState, useMemo, useCallback } from "rea
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import Header from "@/components/header";
+import FAQSection from "@/components/faq-section";
+import Footer from "@/components/footer";
+import ScrollIndicator from "@/components/scroll-indicator";
+
+// Tipagem para melhorar segurança e autocompletar
+interface CanConfig {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: number;
+  visible: boolean;
+}
+
+interface SectionConfigs {
+  [key: string]: CanConfig;
+}
 
 
 export default function HeroSection() {
@@ -18,17 +33,41 @@ export default function HeroSection() {
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
 	
 	// Seções disponíveis no site - centralizado para evitar duplicação
-	const SECTIONS = ["inicio", "loja", "sobre", "contato"];
+	const SECTIONS = ["inicio", "loja", "sobre", "contato", "faq"];
+	
+	// Todas as seções incluindo o footer (para scroll snap, mas não para navegação)
+	const ALL_SECTIONS = [...SECTIONS, "footer"];
+	
+	// Dados para a seção de FAQ
+	const faqData = [
+		{
+			question: "O que é STEEZ?",
+			answer: "A Steez foi pensada para quem se preocupa com o corpo mas não abdica da diversão. É baixa em calorias, sem açúcares adicionados.",
+		},
+		{
+			question: "A Steez dá ressaca?",
+			answer: "Claro! Como qualquer bebida alcoólica, tudo depende da quantidade e do teu corpo. Mas como é leve e limpa, ajuda a evitar aquele peso no dia seguinte.",
+		},
+		{
+			question: "Fazem envios para todo o país?",
+			answer: "Sim, fazemos envios para todo o território continental. Açores e Madeira brevemente.",
+		},
+		{
+			question: "Quero vender Steez no meu espaço. Como faço?",
+			answer: "Boa! Entra em contacto connosco através e-mail para comercial@steez.com.",
+		},
+	];
 	
 	// Configurações padrão para o modelo 3D em cada seção
-	const defaultCanConfigs = useMemo(() => ({
-		inicio: { position: [2.5, 1, 10], rotation: [1, 0, Math.PI * 0.5], scale: 0.42 },
-		loja: { position: [-8, -4, 0], rotation: [0, Math.PI * 0.5, 0], scale: 0.6 },
-		sobre: { position: [-6, -4, 10], rotation: [0, Math.PI, 0], scale: 0.7 },
-		contato: { position: [0, 1, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.25 }
+	const defaultCanConfigs = useMemo<SectionConfigs>(() => ({
+		inicio: { position: [2.5, 1, 10], rotation: [1, 0, Math.PI * 0.5], scale: 0.42, visible: true },
+		loja: { position: [-8, -4, 0], rotation: [0, Math.PI * 0.5, 0], scale: 0.6, visible: true },
+		sobre: { position: [-6, -4, 10], rotation: [0, Math.PI, 0], scale: 0.7, visible: true },
+		contato: { position: [0, 1, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.25, visible: true },
+		faq: { position: [0, 0, 0], rotation: [0, 0, 0], scale: 0, visible: false }
 	}), []);
 	
-	const [canConfigs, setCanConfigs] = useState(defaultCanConfigs);
+	const [canConfigs, setCanConfigs] = useState<SectionConfigs>(defaultCanConfigs);
 
 	// Referência para controlar a direção do scroll (com verificação para SSR)
 	const scrollDirection = useRef({ lastY: 0, direction: 0 });
@@ -38,81 +77,84 @@ export default function HeroSection() {
 		if (typeof document === 'undefined') return; // Verificação para SSR
 		
 		const element = document.getElementById(id);
-		if (element) {
-			// Comportamento suave para melhor experiência do usuário
-			element.scrollIntoView({ behavior: "smooth" });
-			
-			// Atualiza a seção ativa após o scroll
-			setTimeout(() => {
-				setActiveSection(id);
-			}, 250); // Tempo suficiente para o scroll terminar
-		}
-	}, []);
+		if (!element) return;
+		
+		// Evita scroll redundante se já estiver na seção
+		if (activeSection === id) return;
+		
+		// Atualiza a seção ativa imediatamente para feedback visual
+		setActiveSection(id);
+		
+		// Use scrollIntoView para aproveitar o snap nativo
+		element.scrollIntoView({ 
+			behavior: 'smooth',
+			block: 'start'
+		});
+		
+		// Não precisamos forçar o snap, deixamos o CSS fazer isso
+	}, [activeSection]);
 	
-	// Helper otimizado para encontrar a seção que está entrando no viewport (antecipando a detecção)
+	// Helper otimizado para encontrar a seção que está entrando no viewport
 	const getCurrentSection = useCallback(() => {
-		// Verificar se estamos no navegador
 		if (typeof window === 'undefined') return "inicio";
 		
-		// Busca a seção que está se aproximando do viewport, não apenas a que já está visível
 		let bestSection = "inicio";
 		let bestScore = -Infinity;
 		const viewportHeight = window.innerHeight;
+		const scrollThreshold = 50; // Para detecção mais estável
 		
-		// Determina a direção do scroll
+		// Atualiza a direção do scroll
 		const currentY = window.scrollY;
 		const currentDirection = scrollDirection.current;
-		
-		if (currentY > currentDirection.lastY) {
-			currentDirection.direction = 1; // Scroll para baixo
-		} else if (currentY < currentDirection.lastY) {
-			currentDirection.direction = -1; // Scroll para cima
-		}
+		currentDirection.direction = currentY > currentDirection.lastY ? 1 : (currentY < currentDirection.lastY ? -1 : currentDirection.direction);
 		currentDirection.lastY = currentY;
 		
-		for (const id of SECTIONS) {
+		// Itera sobre as seções para encontrar a melhor (incluindo footer para scroll)
+		for (const id of ALL_SECTIONS) {
 			const element = document.getElementById(id);
 			if (!element) continue;
 			
 			const rect = element.getBoundingClientRect();
-			const topDistance = rect.top;
 			
-			// Seção já está no topo (visível)
-			if (Math.abs(topDistance) < 10) {
+			// Seção já está no topo ou quase (prioridade máxima)
+			// Tornamos isso mais tolerante para melhor snap
+			if (Math.abs(rect.top) < scrollThreshold) {
+				// Se estiver próximo o suficiente, considere como ativo
 				return id;
 			}
 			
-			// Seção está entrando no viewport de cima (scroll para baixo)
-			if (currentDirection.direction > 0 && rect.top > 0 && rect.top < viewportHeight * 0.6) {
-				// Favorece a seção que está entrando de cima quando rolamos para baixo
-				const score = (viewportHeight - rect.top) * 2;
-				if (score > bestScore) {
-					bestScore = score;
-					bestSection = id;
+			let score = -Infinity;
+			
+			// Lógica melhorada para calcular a pontuação
+			if (rect.top > 0 && rect.top < viewportHeight) {
+				// Elemento abaixo da viewport, entrando na tela
+				// Quanto mais próximo do topo, maior a pontuação
+				score = viewportHeight - rect.top;
+			} else if (rect.bottom > 0 && rect.top < 0) {
+				// Elemento já parcialmente visível na viewport
+				// Quanto mais visível, maior a pontuação
+				const visibleHeight = Math.min(rect.bottom, viewportHeight);
+				score = visibleHeight * 1.5; // Prioridade aumentada
+				
+				// Dê ainda mais prioridade se mais da metade estiver visível
+				if (visibleHeight > viewportHeight / 2) {
+					score *= 1.5;
 				}
 			}
-			// Seção está entrando no viewport de baixo (scroll para cima)
-			else if (currentDirection.direction < 0 && rect.bottom < viewportHeight && rect.bottom > viewportHeight * 0.4) {
-				// Favorece a seção que está entrando de baixo quando rolamos para cima
-				const score = (viewportHeight - (viewportHeight - rect.bottom)) * 2;
-				if (score > bestScore) {
-					bestScore = score;
-					bestSection = id;
-				}
-			} 
-			// Seção está visível (com prioridade mais baixa que as seções em transição)
-			else if (rect.top < viewportHeight && rect.bottom > 0) {
-				const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
-				const score = visibleHeight / viewportHeight;
-				if (score > bestScore) {
-					bestScore = score;
-					bestSection = id;
-				}
+			
+			// Ajuste de pontuação para o footer (para melhorar o snap)
+			if (id === 'footer' && rect.top < viewportHeight) {
+				score += 100; // Aumenta a chance do footer ser detectado
+			}
+			
+			if (score > bestScore) {
+				bestScore = score;
+				bestSection = id;
 			}
 		}
 		
 		return bestSection;
-	}, [SECTIONS]);
+	}, [ALL_SECTIONS]);
 	
 	// Monitoramento de scroll otimizado para detecção antecipada
 	useEffect(() => {
@@ -121,35 +163,41 @@ export default function HeroSection() {
 		
 		let lastSection = activeSection;
 		let animationFrameId: number;
+		let lastScrollPosition = window.scrollY;
+		let scrollStopTimer = setTimeout(() => {}, 0); // Inicializa com um timeout vazio
 		
 		// Função que verifica continuamente se a seção está mudando
 		const checkSectionChange = () => {
-			// Atualiza a posição Y para animações
-			setScrollY(window.scrollY);
-			
-			// Obtém a seção que está entrando no viewport (detecta antecipadamente)
+			const currentScrollY = window.scrollY;
+			setScrollY(currentScrollY);
 			const currentSection = getCurrentSection();
 			
-			// Se a seção mudou, atualizamos imediatamente
+			// Atualiza apenas se a seção mudou
 			if (currentSection !== lastSection) {
 				lastSection = currentSection;
 				setActiveSection(currentSection);
 				
-				// Dispara evento para atualização imediata da lata
-				const event = new CustomEvent('sectionTransitioning', { 
-					detail: { section: currentSection, configs: canConfigs, scrollY: window.scrollY } 
-				});
-				window.dispatchEvent(event);
+				// Dispara evento apenas se a lata deve ser visível
+				if (currentSection !== 'faq' && currentSection !== 'footer' && 
+				    canConfigs[currentSection as keyof SectionConfigs]?.visible) {
+					window.dispatchEvent(new CustomEvent('sectionTransitioning', { 
+						detail: { section: currentSection, configs: canConfigs, scrollY: currentScrollY } 
+					}));
+				}
+				
+				// Deixamos o CSS cuidar do snap
+				clearTimeout(scrollStopTimer);
 			}
 			
-			// Continua verificando durante a animação de scroll
+			// Rastreia mudanças de posição para detectar quando o scroll para
+			lastScrollPosition = currentScrollY;
+			
 			animationFrameId = requestAnimationFrame(checkSectionChange);
 		};
 		
-		// Inicia monitoramento contínuo
+		// Inicia monitoramento e configura limpeza
 		checkSectionChange();
 		
-		// Eventos para reiniciar o monitoramento se necessário
 		const handleScrollStart = () => {
 			cancelAnimationFrame(animationFrameId);
 			checkSectionChange();
@@ -158,18 +206,20 @@ export default function HeroSection() {
 		window.addEventListener("scroll", handleScrollStart, { passive: true });
 		window.addEventListener("resize", handleScrollStart, { passive: true });
 		
-		// Limpa o monitoramento quando o componente é desmontado
 		return () => {
 			cancelAnimationFrame(animationFrameId);
+			clearTimeout(scrollStopTimer);
 			window.removeEventListener("scroll", handleScrollStart);
 			window.removeEventListener("resize", handleScrollStart);
 		};
 	}, [getCurrentSection, activeSection, canConfigs]);
 
-	// Observa mudanças na seção ativa para atualizar a animação da lata imediatamente
+	// Observa mudanças na seção ativa para atualizar a animação da lata
 	useEffect(() => {
-		// Verificação de segurança para SSR
-		if (typeof window === 'undefined') return;
+		// Verificação de segurança para SSR + visibilidade da lata
+		if (typeof window === 'undefined' || activeSection === 'faq' || !canConfigs[activeSection as keyof SectionConfigs]?.visible) {
+			return;
+		}
 		
 		// Força atualização imediata da animação 3D quando a seção muda
 		const event = new CustomEvent('sectionChanged', { 
@@ -180,28 +230,50 @@ export default function HeroSection() {
 	
 	// Gerencia navegação por teclado (teclas de seta)
 	useEffect(() => {
-		// Verificação de segurança para SSR
 		if (typeof window === 'undefined') return;
 		
 		const handleKeyDown = (e: KeyboardEvent) => {
-			// Arrow Up ou Arrow Down
-			if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+			// Processa apenas teclas de seta para cima e para baixo
+			if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+			
+			const currentSection = getCurrentSection();
+			
+			// Na seção FAQ, queremos prevenir qualquer navegação com setas
+			// Essa lógica está sendo adicionada para evitar conflitos com o scroll-snap
+			if (currentSection === 'faq') {
+				// Previne evento padrão, mas continua com o restante do código
 				e.preventDefault();
-				
-				// Define a direção com base na tecla pressionada
-				const direction = e.key === 'ArrowDown' ? 1 : -1;
-				
-				// Obtém a seção atual usando a função auxiliar
-				const currentSection = getCurrentSection();
-				
-				// Calcula a próxima seção
-				const currentIndex = SECTIONS.indexOf(currentSection);
-				const targetIndex = Math.max(0, Math.min(SECTIONS.length - 1, currentIndex + direction));
-				
-				// Se houver mudança, navega para a nova seção
-				if (currentIndex !== targetIndex) {
-					scrollToSection(SECTIONS[targetIndex]);
-				}
+				// Não navegamos entre seções, mas ainda queremos lidar com o foco aqui
+				return;
+			}
+			
+			e.preventDefault();
+			const direction = e.key === 'ArrowDown' ? 1 : -1;
+			
+			// Caso especial para o footer
+			if (currentSection === 'footer' && direction < 0) {
+				// Se estamos no footer e subindo, vamos para a última seção navegável
+				scrollToSection(SECTIONS[SECTIONS.length - 1]);
+				return;
+			}
+			
+			// Caso especial para última seção antes do footer
+			if (currentSection === SECTIONS[SECTIONS.length - 1] && direction > 0) {
+				// Se estamos na última seção navegável e descendo, vamos para o footer
+				scrollToSection('footer');
+				return;
+			}
+			
+			// Navegação normal entre as seções principais
+			const currentIndex = SECTIONS.indexOf(currentSection);
+			let targetIndex = currentIndex + direction;
+			
+			// Limita o índice ao intervalo válido
+			targetIndex = Math.max(0, Math.min(SECTIONS.length - 1, targetIndex));
+			
+			// Navega apenas se houver mudança de seção
+			if (currentIndex !== targetIndex) {
+				scrollToSection(SECTIONS[targetIndex]);
 			}
 		};
 		
@@ -209,46 +281,132 @@ export default function HeroSection() {
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, [getCurrentSection, SECTIONS, scrollToSection]);
 
-	// Gerencia navegação por scroll com otimização de desempenho
+	// Gerencia navegação por scroll com throttling para performance
 	useEffect(() => {
 		const container = mainContainerRef.current;
 		if (!container) return;
 
-		// Variáveis para controle de throttle
 		let isScrolling = false;
 		let scrollTimeout: NodeJS.Timeout;
+		let touchStartY = 0;
 
 		const handleWheel = (e: WheelEvent) => {
+			// Não intercepta eventos de rolagem na seção FAQ para permitir scroll natural
+			const currentSection = getCurrentSection();
+			if (currentSection === 'faq') return;
+			
 			e.preventDefault();
 			
-			// Se já estiver rolando, ignore o evento
+			// Throttling - ignora eventos durante animação
 			if (isScrolling) return;
 			isScrolling = true;
 			
-			// Determina a direção do scroll
 			const direction = e.deltaY > 0 ? 1 : -1;
-			const currentSection = getCurrentSection();
+			const currentIndex = ALL_SECTIONS.indexOf(currentSection);
 			
-			// Calcula a próxima seção
-			const currentIndex = SECTIONS.indexOf(currentSection);
-			const targetIndex = Math.max(0, Math.min(SECTIONS.length - 1, currentIndex + direction));
-			
-			// Se houver mudança, navega para a nova seção
-			if (currentIndex !== targetIndex) {
-				scrollToSection(SECTIONS[targetIndex]);
+			// Se estamos na última seção navegável e tentando descer, vá para o footer
+			if (currentSection === SECTIONS[SECTIONS.length - 1] && direction > 0) {
+				scrollToSection('footer');
+			} 
+			// Se estamos no footer e tentando subir, vá para a última seção navegável
+			else if (currentSection === 'footer' && direction < 0) {
+				scrollToSection(SECTIONS[SECTIONS.length - 1]);
+			}
+			// Caso contrário, navegue normalmente entre as seções principais
+			else {
+				const targetIndex = Math.max(0, Math.min(SECTIONS.length - 1, SECTIONS.indexOf(currentSection) + direction));
+				if (SECTIONS.indexOf(currentSection) !== targetIndex) {
+					scrollToSection(SECTIONS[targetIndex]);
+				}
 			}
 			
 			// Reset do throttle após 500ms
 			clearTimeout(scrollTimeout);
-			scrollTimeout = setTimeout(() => {
-				isScrolling = false;
-			}, 500);
+			scrollTimeout = setTimeout(() => isScrolling = false, 500);
 		};
 
+		// Manipulador de eventos de toque para suporte mobile
+		const handleTouchStart = (e: TouchEvent) => {
+			touchStartY = e.touches[0].clientY;
+		};
+
+		const handleTouchMove = (e: TouchEvent) => {
+			const currentSection = getCurrentSection();
+			
+			// Não intercepta eventos de toque na seção FAQ
+			// Exceto se for um swipe significativo para baixo (para ir ao footer)
+			if (currentSection === 'faq') {
+				// Verifica se o usuário está no final da seção FAQ e deslizando para baixo
+				const touchEndY = e.touches[0].clientY;
+				const touchDiff = touchStartY - touchEndY;
+				
+				// Se for um deslize significativo para baixo e estamos no final da seção FAQ
+				if (touchDiff > 70) { // Gesto mais forte para detectar intenção de ir para o footer
+					const faqElement = document.getElementById('faq');
+					if (faqElement) {
+						const rect = faqElement.getBoundingClientRect();
+						const scrollBottom = window.innerHeight + window.scrollY;
+						const documentHeight = document.documentElement.scrollHeight;
+						
+						// Se estamos perto do final do FAQ, permitimos navegar para o footer
+						if (scrollBottom > documentHeight - 100) {
+							scrollToSection('footer');
+							e.preventDefault();
+							return;
+						}
+					}
+				}
+				return; // Para outros gestos, deixa o scroll padrão no FAQ
+			}
+			
+			// Throttling - ignora eventos durante animação
+			if (isScrolling) return;
+			
+			const touchEndY = e.touches[0].clientY;
+			const touchDiff = touchStartY - touchEndY;
+			
+			// Apenas processa se o gesto for significativo (mais sensível no mobile)
+			if (Math.abs(touchDiff) < 30) return;
+			
+			isScrolling = true;
+			e.preventDefault();
+			
+			const direction = touchDiff > 0 ? 1 : -1; // positivo = para baixo
+			
+			// Se estamos na última seção navegável e tentando descer, vá para o footer
+			if (currentSection === SECTIONS[SECTIONS.length - 1] && direction > 0) {
+				scrollToSection('footer');
+			} 
+			// Se estamos no footer e tentando subir, vá para a última seção navegável
+			else if (currentSection === 'footer' && direction < 0) {
+				scrollToSection(SECTIONS[SECTIONS.length - 1]);
+			}
+			// Caso contrário, navegue normalmente entre as seções principais
+			else {
+				const currentIndex = SECTIONS.indexOf(currentSection);
+				const targetIndex = Math.max(0, Math.min(SECTIONS.length - 1, currentIndex + direction));
+				if (currentIndex !== targetIndex) {
+					scrollToSection(SECTIONS[targetIndex]);
+				}
+			}
+			
+			// Reset do throttle após 500ms
+			clearTimeout(scrollTimeout);
+			scrollTimeout = setTimeout(() => isScrolling = false, 500);
+			
+			// Atualiza a posição inicial do toque
+			touchStartY = touchEndY;
+		};
+
+		// Adiciona event listeners
 		container.addEventListener("wheel", handleWheel, { passive: false });
+		container.addEventListener("touchstart", handleTouchStart, { passive: true });
+		container.addEventListener("touchmove", handleTouchMove, { passive: false });
 		
 		return () => {
 			container.removeEventListener("wheel", handleWheel);
+			container.removeEventListener("touchstart", handleTouchStart);
+			container.removeEventListener("touchmove", handleTouchMove);
 			clearTimeout(scrollTimeout);
 		};
 	}, [getCurrentSection, SECTIONS, scrollToSection]);
@@ -256,7 +414,7 @@ export default function HeroSection() {
 	return (
 		<div 
 			ref={mainContainerRef} 
-			className="h-screen overflow-y-auto scroll-smooth snap-y snap-always snap-mandatory overflow-x-hidden overscroll-y-contain scroll-pt-16"
+			className="h-screen overflow-y-auto scroll-smooth snap-y snap-mandatory overflow-x-hidden overscroll-y-contain scroll-pt-16"
 		>
 			{/* Header com navegação */}
 			<Header activeSection={activeSection} scrollToSection={scrollToSection} />
@@ -264,7 +422,7 @@ export default function HeroSection() {
 			{/* Hero Section */}
 			<div
 				id="inicio"
-				className="relative h-screen flex items-center justify-center pt-20 snap-start"
+				className="relative h-screen flex items-center justify-center pt-20 snap-start snap-always"
 			>
 				{/* Background Pattern */}
 				<div className="absolute inset-0 opacity-5">
@@ -303,28 +461,32 @@ export default function HeroSection() {
 					{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
 				</div>
 				
-				<div className="fixed inset-0 w-full h-full pointer-events-none z-20">
-					<Canvas
-						camera={{ position: [0, 1, 50], fov: 16 }}
-						style={{ width: "100%", height: "100%" }}
-						gl={{ preserveDrawingBuffer: true }}
-					>
-						<ambientLight intensity={3} />
-						<directionalLight position={[5, 15, 5]} intensity={9} />
-						<Suspense fallback={null}>
-							<AnimatedCan 
-								scrollY={scrollY} 
-								activeSection={activeSection}
-								sectionConfigs={canConfigs}
-							/>
-						</Suspense>
-					</Canvas>
-				</div>				{/* Main Content */}
+				{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
+				{(activeSection === 'faq' || !canConfigs[activeSection as keyof SectionConfigs]?.visible) ? null : (
+					<div className="fixed inset-0 w-full h-full pointer-events-none z-20">
+						<Canvas
+							camera={{ position: [0, 1, 50], fov: 16 }}
+							style={{ width: "100%", height: "100%" }}
+							gl={{ preserveDrawingBuffer: true }}
+						>
+							<ambientLight intensity={3} />
+							<directionalLight position={[5, 15, 5]} intensity={9} />
+							<Suspense fallback={null}>
+								<AnimatedCan 
+									scrollY={scrollY} 
+									activeSection={activeSection}
+									sectionConfigs={canConfigs}
+								/>
+							</Suspense>
+						</Canvas>
+					</div>
+				)}
+				{/* Main Content */}
 				<div className="relative z-4 text-center max-w-6xl mx-auto px-6">
 					{/* Tagline */}
 					<div className="mb-8">
 						<p className="text-lg font-medium text-gray-700 tracking-wide">
-							ZERO BULLSHIT, DÁ-TE STEEZ
+							ÁLCOOL SEM CULPA
 						</p>
 					</div>
 
@@ -358,19 +520,14 @@ export default function HeroSection() {
 					</p>
 
 					{/* Scroll Indicator */}
-					<div
-						className="animate-bounce cursor-pointer"
-						onClick={() => scrollToSection("loja")}
-					>
-						<ChevronDown className="w-8 h-8 text-gray-400 mx-auto hover:text-red-500 transition-colors" />
-					</div>
+					<ScrollIndicator onClick={() => scrollToSection("loja")} section="loja" />
 				</div>
 			</div>
 
 			{/* Additional Content for Scroll Effect */}
 			<div
 				id="loja"
-				className="h-screen bg-white flex items-center justify-center snap-start"
+				className="h-screen bg-white flex items-center justify-center snap-start snap-always"
 			>
 				<div className="text-center">
 					<h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -381,19 +538,14 @@ export default function HeroSection() {
 					</p>
 
 					{/* Scroll Indicator */}
-					<div
-						className="animate-bounce cursor-pointer"
-						onClick={() => scrollToSection("sobre")}
-					>
-						<ChevronDown className="w-8 h-8 text-gray-400 mx-auto hover:text-red-500 transition-colors" />
-					</div>
+					<ScrollIndicator onClick={() => scrollToSection("sobre")} section="sobre" />
 				</div>
 			</div>
 
 			{/* Terceira Seção */}
 			<div
 				id="sobre"
-				className="h-screen bg-gray-100 flex items-center justify-center snap-start"
+				className="h-screen bg-gray-100 flex items-center justify-center snap-start snap-always"
 			>
 				<div className="text-center">
 					<h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -404,27 +556,67 @@ export default function HeroSection() {
 					</p>
 					
 					{/* Scroll Indicator */}
-					<div
-						className="animate-bounce cursor-pointer"
-						onClick={() => scrollToSection("contato")}
-					>
-						<ChevronDown className="w-8 h-8 text-gray-400 mx-auto hover:text-red-500 transition-colors" />
-					</div>
+					<ScrollIndicator onClick={() => scrollToSection("contato")} section="contato" />
 				</div>
 			</div>
 
 			{/* Quarta Seção - Contato */}
 			<div
 				id="contato"
-				className="h-screen bg-white flex items-center justify-center snap-start"
+				className="h-screen bg-white flex items-center justify-center snap-start snap-always"
 			>
 				<div className="text-center">
 					<h2 className="text-4xl font-bold text-gray-900 mb-4">
 						Entre em contato
 					</h2>
-					<p className="text-xl text-gray-600">
+					<p className="text-xl text-gray-600 mb-8">
 						Estamos aqui para responder todas as suas dúvidas!
 					</p>
+					
+					{/* Scroll Indicator */}
+					<ScrollIndicator onClick={() => scrollToSection("faq")} section="faq" />
+				</div>
+			</div>
+			
+			{/* Seção de FAQ */}
+			<div 
+				id="faq" 
+				className="h-screen bg-gray-50 snap-start snap-always flex flex-col"
+				tabIndex={-1} // Impede que a seção receba foco por teclado
+				onFocus={(e) => e.currentTarget.blur()} // Garante que o elemento não mantenha o foco
+			>
+				<div 
+					className="flex-1 flex flex-col justify-center items-center py-16 px-4 sm:px-6 overflow-hidden"
+					onKeyDown={(e) => {
+						// Previne completamente que teclas afetem a navegação
+						e.preventDefault();
+						e.stopPropagation();
+					}}
+					onClick={(e) => {
+						// Remove o foco do elemento que recebeu o clique
+						if (document.activeElement instanceof HTMLElement) {
+							document.activeElement.blur();
+						}
+					}}
+				>
+					<div className="w-full max-w-4xl mx-auto">
+						<h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+							Perguntas Frequentes
+						</h2>
+						<div className="overflow-y-auto hide-scrollbar pr-2" style={{ maxHeight: 'calc(100vh - 260px)' }}>
+							<FAQSection faq={faqData} />
+						</div>
+					
+						{/* Scroll Indicator para Footer */}
+						<ScrollIndicator onClick={() => scrollToSection("footer")} section="footer" size="small" />
+					</div>
+				</div>
+			</div>
+			
+			{/* Footer */}
+			<div id="footer" className="h-screen bg-[#181818] snap-start snap-always flex items-center justify-center px-4 sm:px-6">
+				<div className="w-full max-w-6xl mx-auto text-white">
+					<Footer />
 				</div>
 			</div>
 		</div>
