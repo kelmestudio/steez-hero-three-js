@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 
 interface CartItem {
   id: string;
@@ -22,41 +22,74 @@ interface CartContextType {
   total: number;
 }
 
+const CART_STORAGE_KEY = "steezCart";
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+// Função para verificar se estamos no navegador (não SSR)
+const isBrowser = typeof window !== 'undefined';
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  // Carregar dados do carrinho ao iniciar
-  useEffect(() => {
+  // Função para carregar dados do carrinho com segurança
+  const loadCart = useCallback(() => {
+    if (!isBrowser) return;
+    
     try {
-      const savedCart = localStorage.getItem("steezCart");
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
       if (savedCart) {
-        setItems(JSON.parse(savedCart));
+        const parsedCart = JSON.parse(savedCart);
+        // Validar que é um array antes de usar
+        if (Array.isArray(parsedCart)) {
+          setItems(parsedCart);
+        }
       }
+      setIsInitialized(true);
     } catch (error) {
       console.error("Erro ao carregar carrinho:", error);
+      setIsInitialized(true);
     }
   }, []);
   
+  // Carregar dados do carrinho ao iniciar
+  useEffect(() => {
+    loadCart();
+  }, [loadCart]);
+  
   // Salvar dados do carrinho quando mudar
   useEffect(() => {
+    if (!isBrowser || !isInitialized) return;
+    
     try {
-      localStorage.setItem("steezCart", JSON.stringify(items));
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     } catch (error) {
       console.error("Erro ao salvar carrinho:", error);
     }
-  }, [items]);
+  }, [items, isInitialized]);
 
-  const addItem = (item: CartItem) => {
+  // Função para calcular o preço base de um pacote
+  const calculateBasePrice = useCallback((packSize: number): number => {
+    return packSize === 6 ? 12 : 24;
+  }, []);
+
+  // Função otimizada para adicionar itens ao carrinho
+  const addItem = useCallback((item: CartItem) => {
+    // Validar entrada
+    if (!item || typeof item !== 'object' || !item.packSize) {
+      console.error("Item inválido adicionado ao carrinho");
+      return;
+    }
+    
     // Garantir que o preço está correto baseado no tamanho do pacote
-    const basePrice = item.packSize === 6 ? 12 : 24;
-    const calculatedPrice = basePrice * item.quantity;
+    const basePrice = calculateBasePrice(item.packSize);
+    const calculatedPrice = basePrice * Math.max(1, item.quantity); // Garantir quantidade mínima de 1
     
     // Criar um item com o preço calculado corretamente
     const itemWithCalculatedPrice = {
       ...item,
-      price: calculatedPrice
+      price: calculatedPrice,
+      quantity: Math.max(1, item.quantity) // Garantir quantidade mínima de 1
     };
     
     setItems(prevItems => {
@@ -68,7 +101,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return prevItems.map(i => {
           if (i.id === item.id) {
             const newQuantity = i.quantity + item.quantity;
-            const newPrice = (i.packSize === 6 ? 12 : 24) * newQuantity;
+            const newPrice = calculateBasePrice(i.packSize) * newQuantity;
             return { 
               ...i, 
               quantity: newQuantity,
@@ -82,18 +115,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return [...prevItems, itemWithCalculatedPrice];
       }
     });
-  };
+  }, [calculateBasePrice]);
 
-  const removeItem = (id: string) => {
+  const removeItem = useCallback((id: string) => {
+    if (!id) return;
+    
     setItems(prevItems => prevItems.filter(item => item.id !== id));
-  };
+  }, []);
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
+    if (!id || quantity < 1) return;
+    
     setItems(prevItems => 
       prevItems.map(item => {
         if (item.id === id) {
           // Calcula o preço unitário baseado no tamanho do pacote
-          const unitPrice = item.packSize === 6 ? 12 : 24;
+          const unitPrice = calculateBasePrice(item.packSize);
           return { 
             ...item, 
             quantity,
@@ -104,14 +141,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return item;
       })
     );
-  };
+  }, [calculateBasePrice]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
-  };
+    // Também limpar o localStorage para garantir consistência
+    if (isBrowser) {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    }
+  }, []);
 
   // Função para atualizar o tamanho do pacote (6 ou 12 latas)
-  const updatePackSize = (id: string, packSize: number, newPrice: number) => {
+  const updatePackSize = useCallback((id: string, packSize: number, newPrice: number) => {
+    if (!id || ![6, 12].includes(packSize) || newPrice <= 0) return;
+    
     setItems(prevItems => 
       prevItems.map(item => 
         item.id === id ? { 
@@ -122,7 +165,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         } : item
       )
     );
-  };
+  }, []);
 
   // Calcular o número total de itens no carrinho
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);

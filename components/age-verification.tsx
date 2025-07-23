@@ -10,16 +10,31 @@ interface AgeVerificationProps {
 export default function AgeVerification({ onVerified }: AgeVerificationProps) {
   // Estado para verificação de animação
   const [animate, setAnimate] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   // Efeito para animação ao montar o componente
   useEffect(() => {
-    setAnimate(true);
+    // Pequeno delay para garantir que a animação de entrada seja perceptível
+    const timer = setTimeout(() => {
+      setAnimate(true);
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Função para confirmar a idade
   const handleConfirmAge = () => {
-    // Armazena a verificação no localStorage
-    localStorage.setItem('steez-age-verified', 'true');
+    // Evitar cliques múltiplos durante a transição
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    
+    try {
+      // Armazena a verificação no localStorage com tratamento de erros
+      localStorage.setItem('steez-age-verified', 'true');
+    } catch (error) {
+      console.error("Erro ao salvar verificação de idade:", error);
+    }
     
     // Anima a saída do modal
     setAnimate(false);

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
+import { useNotifications } from "@/lib/notification-service";
 import Header from "@/components/header";
 
 export default function CarrinhoPage() {
@@ -20,19 +21,7 @@ export default function CarrinhoPage() {
     window.location.href = `/#${id}`;
   };
   
-  // Função para mostrar notificações
-  const showNotification = (message: string, bgColor: string = 'bg-blue-500') => {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-20 left-1/2 transform -translate-x-1/2 ${bgColor} text-white py-2 px-4 rounded-lg z-50`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 2000);
-  };
+  const { showNotification } = useNotifications();
 
   const handleDecrement = (id: string, currentQuantity: number) => {
     if (currentQuantity > 1) {
@@ -46,7 +35,7 @@ export default function CarrinhoPage() {
 
   const handleRemove = (id: string) => {
     removeItem(id);
-    showNotification('Item removido do carrinho', 'bg-red-500');
+    showNotification('Item removido do carrinho', 'error');
   };
   
   // Função para calcular o preço com base no tamanho do pacote
@@ -297,7 +286,7 @@ export default function CarrinhoPage() {
                     
                     setShippingCost(newShippingCost);
                     setShippingCalculated(true);
-                    showNotification(`Frete calculado: ${newShippingCost}€`, 'bg-green-500');
+                    showNotification(`Frete calculado: ${newShippingCost}€`, 'success');
                   }
                 }}
               >
@@ -338,14 +327,17 @@ export default function CarrinhoPage() {
                 onClick={() => {
                   if (items.length > 0) {
                     // Aqui você implementaria a finalização do pedido
-                    // Por enquanto, apenas mostra uma notificação
-                    showNotification('Pedido finalizado com sucesso!', 'bg-green-500');
+                    showNotification('Pedido finalizado com sucesso!', 'success');
                     
-                    // Simulando um redirecionamento para uma página de confirmação
+                    // Em uma implementação real, você enviaria os dados para processamento
+                    // e redirecionaria para uma página de confirmação
+                    
+                    // Para demonstração, simplesmente mostrar uma notificação de sucesso
+                    // Sem usar alert (melhor experiência do usuário)
                     setTimeout(() => {
-                      alert('Obrigado pela sua compra!');
                       // Em produção, você redirecionaria para uma página de confirmação
                       // router.push('/confirmacao-pedido');
+                      showNotification('Obrigado pela sua compra!', 'success', 5000);
                     }, 1000);
                   }
                 }}

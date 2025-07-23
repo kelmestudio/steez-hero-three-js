@@ -14,22 +14,41 @@ export function AgeVerificationProvider({ children }: { children: ReactNode }) {
   // Estado para verificar se a idade foi verificada
   const [isVerified, setIsVerified] = useState(false); // Inicialmente falso para mostrar o modal
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Constante para a chave de armazenamento, para evitar erros de digitação
+  const AGE_VERIFICATION_KEY = 'steez-age-verified';
 
   // Verifica localStorage quando o componente é montado (apenas no cliente)
   useEffect(() => {
-    // Verificar se a idade já foi confirmada anteriormente
-    const ageVerified = localStorage.getItem('steez-age-verified') === 'true';
+    // Assegurar que o código só roda no cliente
+    if (typeof window === 'undefined') return;
     
-    setIsVerified(ageVerified);
-    setIsLoading(false);
+    try {
+      // Verificar se a idade já foi confirmada anteriormente
+      const ageVerified = localStorage.getItem(AGE_VERIFICATION_KEY) === 'true';
+      setIsVerified(ageVerified);
+    } catch (error) {
+      // Em caso de erro com localStorage, presumir não verificado
+      console.error("Erro ao verificar idade:", error);
+      setIsVerified(false);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  // Função para marcar como verificado
+  // Função para marcar como verificado com tratamento de erros
   const handleVerified = () => {
     setIsVerified(true);
+    
+    // Tentar salvar no localStorage (já tratado no componente AgeVerification)
+    try {
+      localStorage.setItem(AGE_VERIFICATION_KEY, 'true');
+    } catch (error) {
+      console.error("Erro ao salvar verificação de idade:", error);
+    }
   };
 
-  // Não renderiza nada durante o carregamento inicial
+  // Não renderiza nada durante o carregamento inicial para evitar flash
   if (isLoading) {
     return null;
   }
@@ -37,7 +56,10 @@ export function AgeVerificationProvider({ children }: { children: ReactNode }) {
   return (
     <AgeVerificationContext.Provider value={{ isVerified, setVerified: setIsVerified }}>
       {!isVerified && <AgeVerification onVerified={handleVerified} />}
-      <div className={!isVerified ? 'blur-sm pointer-events-none' : ''}>
+      <div 
+        className={!isVerified ? 'blur-sm pointer-events-none transition-all duration-300' : ''}
+        aria-hidden={!isVerified}
+      >
         {children}
       </div>
     </AgeVerificationContext.Provider>

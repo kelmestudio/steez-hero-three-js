@@ -157,6 +157,23 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: Animated
     return count > 0 ? [xSum / count, ySum / count, zSum / count] : [0, 0, 0];
   }, [nodes]);
   
+  // Usar useFrame para animações suaves com base no tempo em vez do scrollY
+  const lastScrollY = useRef(scrollY);
+  const lastTimestamp = useRef(Date.now());
+  const scrollVelocity = useRef(0);
+  
+  // Calcular a velocidade de scroll para efeitos mais suaves
+  useEffect(() => {
+    const now = Date.now();
+    const delta = now - lastTimestamp.current;
+    if (delta > 0) {
+      const scrollDelta = scrollY - lastScrollY.current;
+      scrollVelocity.current = scrollDelta / delta;
+      lastScrollY.current = scrollY;
+      lastTimestamp.current = now;
+    }
+  }, [scrollY]);
+  
   // Animar o modelo a cada frame
   useFrame((state, delta) => {
     if (!canRef.current) return;
@@ -266,7 +283,7 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: Animated
       ref={canRef} 
       dispose={null}
       visible={true}
-      raycast={null}
+      raycast={() => {}}
     >
       {/* Meshes do modelo */}
       {meshes}
