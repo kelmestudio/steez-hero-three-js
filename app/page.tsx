@@ -9,6 +9,7 @@ import {
 	useCallback,
 	useRef
 } from "react";
+import SloganSteez from "@/components/svg/slogan-steez";
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
 import { Button } from "@/components/ui/button";
@@ -599,21 +600,22 @@ export default function HeroSection() {
 			{/* Additional Content for Scroll Effect */}
 			<div
 				id="loja"
-				className="h-screen bg-white flex items-center justify-center snap-start snap-always"
+				className="h-screen bg-white flex items-center justify-center snap-start snap-always pt-10"
 			>
-				<div className="text-center">
-					<h2 className="text-4xl font-bold text-gray-900 mb-4	">
+				<div className="text-center flex flex-col align-center">
+					<h2 className="text-8xl font-bold text-gray-900 mb-4">
 						Better Than Gin.
 					</h2>
-					<p className="text-xl text-gray-600 mb-8">
-						A lata se anima enquanto você desliza!
-					</p>
+					<SloganSteez className="text-gray-600 mx-auto max-w-md h-12 mb-10" />
 
 					{/* Scroll Indicator */}
-					<ScrollIndicator
+					<div>
+						
+						<ScrollIndicator
 						onClick={() => scrollToSection("beneficios")}
 						section="beneficios"
-					/>
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -623,9 +625,9 @@ export default function HeroSection() {
 				className="h-screen bg-gradient-to-b from-white to-pink-50 flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
 				<div className="container mx-auto px-6 max-w-7xl">
-					<div className="flex flex-col md:flex-row-reverse  items-center justify-between gap-8 md:gap-16">
+					<div className="flex flex-col md:flex-row-reverse  items-center justify-between gap-4 md:gap-16">
 						{/* Coluna de texto com os benefícios */}
-						<div className="w-full md:w-1/2 space-y-12 z-10">
+						<div className="w-full md:w-1/2 space-y-8 z-10">
 							<div className="text-left">
 								<div className="flex items-center mb-4">
 									<span className="text-sm font-medium text-red-500 tracking-wide text">
@@ -645,29 +647,29 @@ export default function HeroSection() {
 								</p>
 							</div>
 
-							<div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20">
+							<div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
 								{/* Benefício 1 - Zero açúcares */}
-								<div className="flex flex-col items-center text-center group">
+								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
 									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
-										<CandyOff className="h-10 w-10" />
+										<CandyOff className="h-8 w-8" />
 									</div>
-									<h3 className="text-2xl font-bold">Zero açúcares</h3>
+									<p className="text-xl font-bold">Zero açúcares</p>
 								</div>
 
 								{/* Benefício 2 - Zero glúten */}
-								<div className="flex flex-col items-center text-center group">
+								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
 									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
-										<WheatOff className="h-10 w-10" />
+										<WheatOff className="h-8 w-8" />
 									</div>
-									<h3 className="text-2xl font-bold">Zero glúten</h3>
+									<p className="text-xl font-bold">Zero glúten</p>
 								</div>
 
 								{/* Benefício 3 - Zero culpa */}
-								<div className="flex flex-col items-center text-center group">
+								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
 									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
-										<BanIcon className="h-10 w-10" />
+										<BanIcon className="h-8 w-8" />
 									</div>
-									<h3 className="text-2xl font-bold">Zero culpa</h3>
+									<p className="text-xl font-bold">Zero culpa</p>
 								</div>
 							</div>
 
@@ -788,10 +790,10 @@ export default function HeroSection() {
 								</div>
 								
 								<Button
-									variant="outline"
-									className="bg-pink-500 text-white hover:bg-pink-600 px-8 py-3 rounded-full w-fit"
+									size="lg"
+									className="bg-[#F42254] text-white hover:bg-[#D61A46] px-8 py-4 text-lg font-medium rounded-full w-64"
 								>
-									Ver ingredientes
+									VER INGREDIENTES
 								</Button>
 							</div>
 						</div>
