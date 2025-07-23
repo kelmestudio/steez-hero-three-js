@@ -89,23 +89,12 @@ export default function CompraSection({
                   id: "steez-pink-" + quantity,
                   name: "STEEZ PINK",
                   price: totalPrice,
-                  image: "/images/slider-01.png",
+                  image: "/images/steez-pink-can.png",
                   quantity: 1,
                   packSize: quantity
                 };
-                
                 addItem(newItem);
-                
-                // Mostrar confirmação antes de redirecionar
-                const confirmation = document.createElement('div');
-                confirmation.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-lg z-50';
-                confirmation.textContent = 'Produto adicionado ao carrinho!';
-                document.body.appendChild(confirmation);
-                
-                // Redirecionar após um curto atraso
-                setTimeout(() => {
-                  router.push('/carrinho');
-                }, 500);
+                router.push('/carrinho');
               }}
             >
               ADICIONAR AO CARRINHO

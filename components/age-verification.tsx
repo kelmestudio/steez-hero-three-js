@@ -39,7 +39,7 @@ export default function AgeVerification({ onVerified }: AgeVerificationProps) {
       <div className={`relative bg-white rounded-lg p-8 max-w-md w-full mx-4 text-center shadow-xl transform transition-transform duration-300 ${animate ? 'scale-100' : 'scale-95'}`}>
         {/* Logo */}
         <div className="mb-6">
-          <h1 className="text-6xl font-black">STEEZ</h1>
+          <h1 className="text-6xl font-bold text-black">STEEZ</h1>
         </div>
         
         <h2 className="text-2xl font-bold mb-4">Verificação de Idade</h2>
@@ -51,23 +51,11 @@ export default function AgeVerification({ onVerified }: AgeVerificationProps) {
         <div className="space-y-3">
           <button
             onClick={handleConfirmAge}
-            className="w-full bg-[#F42254] text-white py-3 px-6 rounded-full font-medium hover:bg-[#e01a4b] transition-colors"
+            className="w-full bg-[#F42254] text-white py-3 px-6 rounded-md font-medium hover:bg-[#e01a4b] transition-colors"
           >
             Sim, tenho mais de 18 anos
           </button>
-          
-          <a 
-            href="https://www.google.com" 
-            className="block text-gray-500 underline text-sm mt-2"
-          >
-            Não, sair do site
-          </a>
         </div>
-        
-        <p className="mt-6 text-xs text-gray-500">
-          Ao confirmar, você concorda com os nossos termos e condições.
-          O consumo de álcool é prejudicial à saúde. Beba com moderação.
-        </p>
       </div>
     </div>
   );

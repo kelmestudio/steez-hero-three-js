@@ -12,10 +12,10 @@ const AgeVerificationContext = createContext<AgeVerificationContextType | undefi
 
 export function AgeVerificationProvider({ children }: { children: ReactNode }) {
   // Estado para verificar se a idade foi verificada
-  const [isVerified, setIsVerified] = useState(true); // Inicialmente true para prevenir flash do conteúdo
+  const [isVerified, setIsVerified] = useState(false); // Inicialmente falso para mostrar o modal
   const [isLoading, setIsLoading] = useState(true);
 
-  // Verifica localStorage quando o componente é montado
+  // Verifica localStorage quando o componente é montado (apenas no cliente)
   useEffect(() => {
     // Verificar se a idade já foi confirmada anteriormente
     const ageVerified = localStorage.getItem('steez-age-verified') === 'true';

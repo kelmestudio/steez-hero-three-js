@@ -37,13 +37,11 @@ export default function CarrinhoPage() {
   const handleDecrement = (id: string, currentQuantity: number) => {
     if (currentQuantity > 1) {
       updateQuantity(id, currentQuantity - 1);
-      showNotification(`Quantidade atualizada: ${currentQuantity - 1}`, 'bg-blue-500');
     }
   };
   
   const handleIncrement = (id: string, currentQuantity: number) => {
     updateQuantity(id, currentQuantity + 1);
-    showNotification(`Quantidade atualizada: ${currentQuantity + 1}`, 'bg-blue-500');
   };
 
   const handleRemove = (id: string) => {
@@ -60,7 +58,6 @@ export default function CarrinhoPage() {
   const handlePackSizeChange = (id: string, packSize: number) => {
     const unitPrice = calculatePrice(packSize);
     updatePackSize(id, packSize, unitPrice);
-    showNotification(`Tamanho do pacote alterado para ${packSize} latas`, 'bg-green-500');
   };
   
   // Função para formatar e validar o código postal português
