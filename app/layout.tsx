@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { CartProvider } from '@/lib/cart-context'
+import { AgeVerificationProvider } from '@/lib/age-verification-context'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'STEEZ - Álcool sem culpa',
+  description: 'STEEZ - A bebida para quem se preocupa com o corpo mas não abdica da diversão',
 }
 
 export default function RootLayout({
@@ -13,8 +14,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="pt-BR">
+      <body>
+        <CartProvider>
+          {children}
+        </CartProvider>
+      </body>
     </html>
   )
 }

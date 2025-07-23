@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button";
 import ScrollIndicator from "@/components/scroll-indicator";
 import { useState } from "react";
+import { useCart } from "@/lib/cart-context";
+import { useRouter } from "next/navigation";
 
 interface CompraSectionProps {
   scrollToSection: (id: string) => void;
@@ -17,6 +19,8 @@ export default function CompraSection({
 }: CompraSectionProps) {
   const [quantity, setQuantity] = useState(initialQuantity);
   const [totalPrice, setTotalPrice] = useState(initialPrice);
+  const { addItem } = useCart();
+  const router = useRouter();
 
   return (
     <div className="container mx-auto px-6 max-w-7xl">
@@ -43,7 +47,7 @@ export default function CompraSection({
           {/* Seção de compra */}
           <div className="flex flex-col space-y-5">
             <div className="flex justify-between items-center">
-              <span className="text-base font-medium text">Quantidade</span>
+              <span className="text-base font-medium text">Pacote</span>
               <span className="text-lg font-bold">Total</span>
             </div>
 
@@ -79,6 +83,30 @@ export default function CompraSection({
             <Button
               size="lg"
               className="w-full bg-black text-white hover:bg-gray-800 px-8 py-4 text-lg font-medium rounded-full mt-4"
+              onClick={() => {
+                // Adicionar o item ao carrinho
+                const newItem = {
+                  id: "steez-pink-" + quantity,
+                  name: "STEEZ PINK",
+                  price: totalPrice,
+                  image: "/images/slider-01.png",
+                  quantity: 1,
+                  packSize: quantity
+                };
+                
+                addItem(newItem);
+                
+                // Mostrar confirmação antes de redirecionar
+                const confirmation = document.createElement('div');
+                confirmation.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-lg z-50';
+                confirmation.textContent = 'Produto adicionado ao carrinho!';
+                document.body.appendChild(confirmation);
+                
+                // Redirecionar após um curto atraso
+                setTimeout(() => {
+                  router.push('/carrinho');
+                }, 500);
+              }}
             >
               ADICIONAR AO CARRINHO
             </Button>
