@@ -13,7 +13,7 @@ import SloganSteez from "@/components/svg/slogan-steez";
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
 import { Button } from "@/components/ui/button";
-import { Settings, BanIcon, WheatOff, CandyOff, Zap } from "lucide-react";
+import { Settings, BanIcon, WheatOff, CandyOff, Zap, Info } from "lucide-react";
 import Header from "@/components/header";
 import FAQSection from "@/components/faq-section";
 import Footer from "@/components/footer";
@@ -517,7 +517,7 @@ export default function HeroSection() {
 				{/* Indicador de seção ativa */}
 				<div
 					key={activeSection}
-					className="fixed hidden top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white py-2 px-6 rounded-full text-sm font-medium z-50 transition-all duration-500 animate-pulse"
+					className="fixed hidden top-16 left-1/2 transform -translate-x-1/2 bg-[#F42254] text-white py-2 px-6 rounded-full text-sm font-medium z-50 transition-all duration-500 animate-pulse"
 					style={{
 						opacity: 0.9,
 						pointerEvents: "none",
@@ -572,6 +572,7 @@ export default function HeroSection() {
 						<Button
 							size="lg"
 							className="bg-black text-white hover:bg-gray-800 px-8 py-4 text-lg font-medium rounded-full"
+							onClick={() => scrollToSection("compra")}
 						>
 							COMPRAR AGORA
 						</Button>
@@ -579,6 +580,7 @@ export default function HeroSection() {
 							variant="outline"
 							size="lg"
 							className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-medium rounded-full bg-transparent"
+							onClick={() => scrollToSection("ingredientes")}
 						>
 							VER INGREDIENTES
 						</Button>
@@ -630,7 +632,7 @@ export default function HeroSection() {
 						<div className="w-full md:w-1/2 space-y-8 z-10">
 							<div className="text-left">
 								<div className="flex items-center mb-4">
-									<span className="text-sm font-medium text-red-500 tracking-wide text">
+									<span className="text-sm font-medium text-[#F42254] tracking-wide text">
 										BENEFÍCIOS
 									</span>
 								</div>
@@ -638,7 +640,7 @@ export default function HeroSection() {
 									STEEZ PINK É{" "}
 									<span className="relative inline-block">
 										ZERO
-										<span className="absolute -bottom-1 left-0 w-full h-2 bg-red-500"></span>
+										<span className="absolute -bottom-1 left-0 w-full h-2 bg-[#F42254]"></span>
 									</span>
 								</h2>
 								<p className="text-lg text-gray-600 mb-10">
@@ -650,7 +652,7 @@ export default function HeroSection() {
 							<div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
 								{/* Benefício 1 - Zero açúcares */}
 								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
-									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
+									<div className="bg-[#F42254] p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
 										<CandyOff className="h-8 w-8" />
 									</div>
 									<p className="text-xl font-bold">Zero açúcares</p>
@@ -658,7 +660,7 @@ export default function HeroSection() {
 
 								{/* Benefício 2 - Zero glúten */}
 								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
-									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
+									<div className="bg-[#F42254] p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
 										<WheatOff className="h-8 w-8" />
 									</div>
 									<p className="text-xl font-bold">Zero glúten</p>
@@ -666,7 +668,7 @@ export default function HeroSection() {
 
 								{/* Benefício 3 - Zero culpa */}
 								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
-									<div className="bg-red-500 p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
+									<div className="bg-[#F42254] p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
 										<BanIcon className="h-8 w-8" />
 									</div>
 									<p className="text-xl font-bold">Zero culpa</p>
@@ -696,7 +698,7 @@ export default function HeroSection() {
 						{/* Cabeçalho do Produto */}
 						<div className="w-full md:w-1/2 space-y-6 bg-white rounded-2xl shadow-xl p-8">
 							<div className="text-left">
-								<h3 className="text-4xl font-bold text-pink-500 mb-2">PINK</h3>
+								<h3 className="text-4xl font-bold text-[#F42254] mb-2">PINK</h3>
 								<div className="flex items-center mb-3">
 									<span className="text-base mr-1 text">4.9</span>
 									<div className="flex">
@@ -771,7 +773,7 @@ export default function HeroSection() {
 						<div className="w-full md:w-1/2 space-y-8 z-10">
 							<div className="text-left">
 								<div className="flex items-center mb-4">
-									<span className="text-sm font-medium text-gray-500 tracking-wide text">INGREDIENTES</span>
+									<span className="text-sm font-medium text-[#F42254] tracking-wide text">INGREDIENTES</span>
 								</div>
 								<h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight text-black">
 									NATURAL ATÉ O ÚLTIMO GOLE
@@ -782,16 +784,16 @@ export default function HeroSection() {
 							</div>
 							
 							<div className="flex flex-col space-y-5">
-								<div className="flex items-center gap-3">
-									<div className="bg-gray-200 rounded-full p-3">
-										<span className="text-gray-600 font-medium">i</span>
+								<div className="flex-row flex items-center gap-3 bg-white rounded-lg p-4 shadow-md max-w-80">
+									<div className="bg-gray-100 rounded-full p-3">
+										<Info className="w-5 h-5 text-gray-600" />
 									</div>
 									<p className="text-gray-700">Tamanhos disponíveis: <span className="bg-gray-100 py-1 px-3 rounded-full text-sm">250ml</span></p>
 								</div>
 								
 								<Button
 									size="lg"
-									className="bg-[#F42254] text-white hover:bg-[#D61A46] px-8 py-4 text-lg font-medium rounded-full w-64"
+									className="bg-primary text-white hover:opacity-0.5 px-8 py-4 text-lg font-medium rounded-full w-64"
 								>
 									VER INGREDIENTES
 								</Button>

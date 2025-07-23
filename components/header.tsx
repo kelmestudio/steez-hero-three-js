@@ -21,7 +21,7 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
             className={`text-sm font-medium transition-colors border-b-2 py-1 ${
               activeSection === "inicio"
                 ? "text-black border-red-500"
-                : "text-gray-600 border-transparent hover:text-red-500"
+                : "text-gray-600 border-transparent hover:text-[#F42254]"
             }`}
           >
             INÍCIO
@@ -31,7 +31,7 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
             className={`text-sm font-medium transition-colors border-b-2 py-1 ${
               activeSection === "loja"
                 ? "text-black border-red-500"
-                : "text-gray-600 border-transparent hover:text-red-500"
+                : "text-gray-600 border-transparent hover:text-[#F42254]"
             }`}
           >
             LOJA
@@ -41,7 +41,7 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
             className={`text-sm font-medium transition-colors border-b-2 py-1 ${
               activeSection === "beneficios"
                 ? "text-black border-red-500"
-                : "text-gray-600 border-transparent hover:text-red-500"
+                : "text-gray-600 border-transparent hover:text-[#F42254]"
             }`}
           >
             BENEFÍCIOS
@@ -51,7 +51,7 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
             className={`text-sm font-medium transition-colors border-b-2 py-1 ${
               activeSection === "sobre"
                 ? "text-black border-red-500"
-                : "text-gray-600 border-transparent hover:text-red-500"
+                : "text-gray-600 border-transparent hover:text-[#F42254]"
             }`}
           >
             SOBRE NÓS
@@ -61,16 +61,16 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
             className={`text-sm font-medium transition-colors border-b-2 py-1 ${
               activeSection === "contato"
                 ? "text-black border-red-500"
-                : "text-gray-600 border-transparent hover:text-red-500"
+                : "text-gray-600 border-transparent hover:text-[#F42254]"
             }`}
           >
             CONTACTO
           </button>
         </div>
-        <a href="#" className="flex items-center space-x-2 group hover:text-red-500 transition-colors">
+        <a href="#" className="flex items-center space-x-2 group hover:text-[#F42254] transition-colors">
           <p className="text-md font-medium">CARRINHO</p>
           <div className="relative">
-            <ShoppingCart className="w-6 h-6 group-hover:text-red-500 transition-colors" />
+            <ShoppingCart className="w-6 h-6 group-hover:text-[#F42254] transition-colors" />
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               0
             </span>
