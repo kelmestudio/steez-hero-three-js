@@ -19,7 +19,7 @@ export default function BeneficiosSection({ scrollToSection }: BeneficiosSection
                 BENEFÍCIOS
               </span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-3 tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">
               STEEZ PINK É{" "}
               <span className="relative inline-block">
                 ZERO

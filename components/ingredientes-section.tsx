@@ -20,7 +20,7 @@ export default function IngredientesSection({ scrollToSection }: IngredientesSec
                 INGREDIENTES
               </span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight text-black">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 tracking-tight text-black">
               NATURAL ATÉ O ÚLTIMO GOLE
             </h2>
             <p className="text-lg text-gray-600 mb-8">

@@ -23,6 +23,17 @@ import BeneficiosSection from "@/components/beneficios-section";
 import IngredientesSection from "@/components/ingredientes-section";
 import CompraSection from "@/components/compra-section";
 
+// sobre-nos section
+import HeartAboutUs from "@/components/svg/heart-about-us";
+import StarAboutUs from "@/components/svg/star-about-us";
+import SteezAboutUs from "@/components/svg/steez-about-us";
+import SunAboutUs from "@/components/svg/sun-about-us";
+import {
+	CarouselItem,
+} from "@/components/ui/carousel";
+import { AutoplayCarousel } from "@/components/autoplay-carousel";
+import Image from "next/image";
+
 // Tipagem para melhorar segurança e autocompletar
 interface CanConfig {
 	position: [number, number, number];
@@ -115,7 +126,7 @@ export default function HeroSection() {
 				position: [-6, -4, 10],
 				rotation: [0, Math.PI, 0],
 				scale: 0.7,
-				visible: true,
+				visible: false,
 			},
 			contato: {
 				position: [0, 1, 10],
@@ -651,24 +662,55 @@ export default function HeroSection() {
 				<IngredientesSection scrollToSection={scrollToSection} />
 			</div>
 
-			{/* Terceira Seção */}
+			{/* Seção Sobre Nós */}
 			<div
 				id="sobre"
-				className="h-screen bg-gray-100 flex items-center justify-center snap-start snap-always"
+				className="h-screen bg-gray-100 flex flex-col items-center justify-center snap-start snap-always"
 			>
-				<div className="text-center">
-					<h2 className="text-4xl font-bold text-gray-900 mb-4">
-						Experimente o sabor
-					</h2>
-					<p className="text-xl text-gray-600 mb-8">
-						Refrescante e energizante, a qualquer momento!
-					</p>
+				<div className="container mx-auto px-0 flex flex-col items-center justify-center">
+				
+					<div className="relative w-full max-h-[70vh]">
+						<AutoplayCarousel 
+							className="w-full" 
+							autoplayDelay={2000} 
+							loop={true} 
+							align="start"
+						>
+							<CarouselItem className="pl-1 md:basis-auto relative">
+								<Image src="/images/slider-01.png" alt="Slider 01" className="max-w-[1000px] min-w-full max-h-[60vh] object-contain z-10" width={1000} height={600} />
+								<SteezAboutUs className="absolute bottom-4 right-4" />
+							</CarouselItem>
+							<CarouselItem className="pl-1 md:basis-auto self-center relative">
+								<Image src="/images/slider-02.png" alt="Slider 02" className="max-w-[436px] min-w-full max-h-[50vh] object-contain z-10" width={436} height={366} />
+								<div className="max-w-[324px] flex justify-between mt-3">
+									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">[janeiro-2025]</p>
+									<p className="text-[12px] max-w-[194px] font-medium text-[#2E2E2E]">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque tempus faucibus tellus, eu aliquet augue volutpat ultrices.</p>
+								</div>
+								<HeartAboutUs className="absolute bottom-4 right-4" />
+							</CarouselItem>
+							<CarouselItem className="pl-1 md:basis-auto self-end relative">
+								<div className="flex items-center justify-center mb-3">
+									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">[2025]</p>
+								</div>
+								<Image src="/images/slider-03.png" alt="Slider 03" className="max-w-[261px] min-w-full max-h-[50vh] object-contain" width={261} height={356} />
+								<StarAboutUs className="absolute bottom-4 right-4" />
+							</CarouselItem>
+							<CarouselItem className="pl-1 md:basis-auto relative">
+								<Image src="/images/slider-04.png" alt="Slider 04" className="max-w-[338px] min-w-full max-h-[50vh] object-contain" width={338} height={597} />
+								<SunAboutUs className="absolute bottom-4 right-4" />
+							</CarouselItem>
+						</AutoplayCarousel>
+					</div>
+
+				
 
 					{/* Scroll Indicator */}
-					<ScrollIndicator
-						onClick={() => scrollToSection("contato")}
-						section="contato"
-					/>
+					<div className="mt-6">
+						<ScrollIndicator
+							onClick={() => scrollToSection("contato")}
+							section="contato"
+						/>
+					</div>
 				</div>
 			</div>
 
