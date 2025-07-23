@@ -97,7 +97,7 @@ export default function HeroSection() {
 			},
 			compra: {
 				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 0.75, 0],
+				rotation: [0, Math.PI * 1.75, 0],
 				scale: 0.7,
 				visible: true,
 			},
@@ -129,27 +129,26 @@ export default function HeroSection() {
 	// Referência para controlar a direção do scroll (com verificação para SSR)
 	const scrollDirection = useRef({ lastY: 0, direction: 0 });
 
-	// Define a função scrollToSection antes de usá-la nos hooks
+	// Define a função scrollToSection para navegação entre seções
 	const scrollToSection = useCallback(
 		(id: string) => {
-			if (typeof document === "undefined") return; // Verificação para SSR
+			// Verificação para SSR
+			if (typeof document === "undefined") return;
 
 			const element = document.getElementById(id);
 			if (!element) return;
 
-			// Evita scroll redundante se já estiver na seção
+			// Evita scroll redundante
 			if (activeSection === id) return;
 
 			// Atualiza a seção ativa imediatamente para feedback visual
 			setActiveSection(id);
 
-			// Use scrollIntoView para aproveitar o snap nativo
+			// Use scrollIntoView nativo para navegação suave
 			element.scrollIntoView({
 				behavior: "smooth",
 				block: "start",
 			});
-
-			// Não precisamos forçar o snap, deixamos o CSS fazer isso
 		},
 		[activeSection]
 	);
@@ -306,6 +305,27 @@ export default function HeroSection() {
 		window.dispatchEvent(event);
 	}, [activeSection, canConfigs]);
 
+	// Função auxiliar para determinar a próxima seção com base na seção atual e direção
+	const getNextSection = useCallback((currentSection: string, direction: number): string => {
+		// Mapa de navegação: define para cada seção qual é a próxima seção em cada direção
+		const navigationMap: { [key: string]: { up: string; down: string } } = {
+			inicio: { up: "inicio", down: "loja" },
+			loja: { up: "inicio", down: "beneficios" },
+			beneficios: { up: "loja", down: "compra" },
+			compra: { up: "beneficios", down: "sobre" },
+			sobre: { up: "compra", down: "contato" },
+			contato: { up: "sobre", down: "faq" },
+			faq: { up: "contato", down: "footer" },
+			footer: { up: "faq", down: "footer" }
+		};
+
+		// Determina a direção (para cima ou para baixo)
+		const directionKey = direction < 0 ? "up" : "down";
+		
+		// Retorna a próxima seção com base no mapa de navegação
+		return navigationMap[currentSection]?.[directionKey] || currentSection;
+	}, []);
+
 	// Gerencia navegação por teclado (teclas de seta)
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -314,79 +334,19 @@ export default function HeroSection() {
 			// Processa apenas teclas de seta para cima e para baixo
 			if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
 
-			const currentSection = getCurrentSection();
-
-			// Na seção FAQ, permitimos a navegação com setas para o footer (para baixo) ou para a seção anterior (para cima)
-			if (currentSection === "faq") {
-				e.preventDefault();
-				
-				// Se estamos descendo, vamos para o footer
-				if (e.key === "ArrowDown") {
-					scrollToSection("footer");
-					return;
-				}
-				
-				// Se estamos subindo, vamos para a seção anterior (contato)
-				if (e.key === "ArrowUp") {
-					scrollToSection("contato");
-					return;
-				}
-			}
-
 			e.preventDefault();
+			const currentSection = getCurrentSection();
 			const direction = e.key === "ArrowDown" ? 1 : -1;
-
-			// Caso especial para o footer
-			if (currentSection === "footer" && direction < 0) {
-				// Se estamos no footer e subindo, vamos para a última seção navegável
-				scrollToSection(SECTIONS[SECTIONS.length - 1]);
-				return;
-			}
-
-			// Caso especial para última seção antes do footer
-			if (currentSection === SECTIONS[SECTIONS.length - 1] && direction > 0) {
-				// Se estamos na última seção navegável e descendo, vamos para o footer
-				scrollToSection("footer");
-				return;
-			}
-            
-			// Casos especiais para a seção de compra
-			if (currentSection === "beneficios" && direction > 0) {
-				scrollToSection("compra");
-				return;
-			}
-            
-			if (currentSection === "compra" && direction < 0) {
-				scrollToSection("beneficios");
-				return;
-			}
-            
-			if (currentSection === "compra" && direction > 0) {
-				scrollToSection("sobre");
-				return;
-			}
-            
-			if (currentSection === "sobre" && direction < 0) {
-				scrollToSection("compra");
-				return;
-			}
-
-			// Navegação normal entre as seções principais
-			const currentIndex = SECTIONS.indexOf(currentSection);
-			let targetIndex = currentIndex + direction;
-
-			// Limita o índice ao intervalo válido
-			targetIndex = Math.max(0, Math.min(SECTIONS.length - 1, targetIndex));
-
-			// Navega apenas se houver mudança de seção
-			if (currentIndex !== targetIndex) {
-				scrollToSection(SECTIONS[targetIndex]);
+			const nextSection = getNextSection(currentSection, direction);
+			
+			if (nextSection !== currentSection) {
+				scrollToSection(nextSection);
 			}
 		};
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [getCurrentSection, SECTIONS, scrollToSection]);
+	}, [getCurrentSection, getNextSection, scrollToSection]);
 
 	// Gerencia navegação por scroll com throttling para performance
 	useEffect(() => {
@@ -396,63 +356,71 @@ export default function HeroSection() {
 		let isScrolling = false;
 		let scrollTimeout: NodeJS.Timeout;
 		let touchStartY = 0;
+        const THROTTLE_DELAY = 500; // ms
+        const TOUCH_THRESHOLD = 30; // pixels
+        const STRONG_SWIPE_THRESHOLD = 70; // pixels
+
+        // Função para lidar com a navegação com base na direção do scroll
+        const handleNavigation = (direction: number, currentSection: string, preventDefault?: () => void) => {
+            if (isScrolling) return;
+            
+            if (preventDefault) preventDefault();
+            isScrolling = true;
+            
+            // Caso especial para FAQ: permitir scroll natural interno
+            if (currentSection === "faq" && direction > 0) {
+                // Verificar se estamos no final da seção FAQ antes de navegar
+                const faqElement = document.getElementById("faq");
+                const isAtEnd = faqElement && 
+                    (window.innerHeight + window.scrollY) > 
+                    (document.documentElement.scrollHeight - 100);
+                
+                if (isAtEnd) {
+                    scrollToSection("footer");
+                } else {
+                    isScrolling = false;
+                    return;
+                }
+            } else if (currentSection !== "faq") {
+                // Para outras seções, use o mapa de navegação
+                const nextSection = getNextSection(currentSection, direction);
+                if (nextSection !== currentSection) {
+                    scrollToSection(nextSection);
+                }
+            }
+            
+            // Reset do throttle
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => (isScrolling = false), THROTTLE_DELAY);
+        };
 
 		const handleWheel = (e: WheelEvent) => {
-			// Não intercepta eventos de rolagem na seção FAQ para permitir scroll natural
 			const currentSection = getCurrentSection();
-			if (currentSection === "faq") return;
-
-			e.preventDefault();
-
-			// Throttling - ignora eventos durante animação
-			if (isScrolling) return;
-			isScrolling = true;
-
-			const direction = e.deltaY > 0 ? 1 : -1;
-			const currentIndex = ALL_SECTIONS.indexOf(currentSection);
-
-			// Se estamos na última seção navegável e tentando descer, vá para o footer
-			if (currentSection === SECTIONS[SECTIONS.length - 1] && direction > 0) {
-				scrollToSection("footer");
-			}
-			// Se estamos no footer e tentando subir, vá para a última seção navegável
-			else if (currentSection === "footer" && direction < 0) {
-				scrollToSection(SECTIONS[SECTIONS.length - 1]);
-			} 
-			// Se estamos na seção de benefícios e descendo, vá para a seção de compra
-			else if (currentSection === "beneficios" && direction > 0) {
-				scrollToSection("compra");
-			}
-			// Se estamos na seção de compra e subindo, vá para a seção de benefícios
-			else if (currentSection === "compra" && direction < 0) {
-				scrollToSection("beneficios");
-			}
-			// Se estamos na seção de compra e descendo, vá para a seção sobre
-			else if (currentSection === "compra" && direction > 0) {
-				scrollToSection("sobre");
-			}
-			// Se estamos na seção sobre e subindo, vá para a seção de compra
-			else if (currentSection === "sobre" && direction < 0) {
-				scrollToSection("compra");
-			}
-			// Caso contrário, navegue normalmente entre as seções principais
-			else {
-				const targetIndex = Math.max(
-					0,
-					Math.min(
-						SECTIONS.length - 1,
-						SECTIONS.indexOf(currentSection) + direction
-					)
-				);
-				if (SECTIONS.indexOf(currentSection) !== targetIndex) {
-					scrollToSection(SECTIONS[targetIndex]);
-				}
-			}
-
-			// Reset do throttle após 500ms
-			clearTimeout(scrollTimeout);
-			scrollTimeout = setTimeout(() => (isScrolling = false), 500);
+            
+            // Permitir scroll natural dentro da seção FAQ
+            if (currentSection === "faq" && !isScrollingToEndOfFaq(e.deltaY)) {
+                return;
+            }
+            
+            e.preventDefault();
+            const direction = e.deltaY > 0 ? 1 : -1;
+            handleNavigation(direction, currentSection);
 		};
+        
+        // Verifica se o scroll está chegando ao fim da seção FAQ
+        const isScrollingToEndOfFaq = (deltaY: number): boolean => {
+            if (deltaY <= 0) return false; // Está scrollando para cima
+            
+            const faqElement = document.getElementById("faq");
+            if (!faqElement) return false;
+            
+            const faqContent = faqElement.querySelector('.overflow-y-auto');
+            if (!faqContent) return false;
+            
+            // Verifica se o scroll está próximo do final
+            return (faqContent.scrollTop + faqContent.clientHeight) >= 
+                   (faqContent.scrollHeight - 20);
+        };
 
 		// Manipulador de eventos de toque para suporte mobile
 		const handleTouchStart = (e: TouchEvent) => {
@@ -461,90 +429,27 @@ export default function HeroSection() {
 
 		const handleTouchMove = (e: TouchEvent) => {
 			const currentSection = getCurrentSection();
-
-			// Não intercepta eventos de toque na seção FAQ
-			// Exceto se for um swipe significativo para baixo (para ir ao footer)
-			if (currentSection === "faq") {
-				// Verifica se o usuário está no final da seção FAQ e deslizando para baixo
-				const touchEndY = e.touches[0].clientY;
-				const touchDiff = touchStartY - touchEndY;
-
-				// Se for um deslize significativo para baixo e estamos no final da seção FAQ
-				if (touchDiff > 70) {
-					// Gesto mais forte para detectar intenção de ir para o footer
-					const faqElement = document.getElementById("faq");
-					if (faqElement) {
-						const rect = faqElement.getBoundingClientRect();
-						const scrollBottom = window.innerHeight + window.scrollY;
-						const documentHeight = document.documentElement.scrollHeight;
-
-						// Se estamos perto do final do FAQ, permitimos navegar para o footer
-						if (scrollBottom > documentHeight - 100) {
-							scrollToSection("footer");
-							e.preventDefault();
-							return;
-						}
-					}
-				}
-				return; // Para outros gestos, deixa o scroll padrão no FAQ
-			}
-
-			// Throttling - ignora eventos durante animação
-			if (isScrolling) return;
-
-			const touchEndY = e.touches[0].clientY;
-			const touchDiff = touchStartY - touchEndY;
-
-			// Apenas processa se o gesto for significativo (mais sensível no mobile)
-			if (Math.abs(touchDiff) < 30) return;
-
-			isScrolling = true;
-			e.preventDefault();
-
-			const direction = touchDiff > 0 ? 1 : -1; // positivo = para baixo
-
-			// Se estamos na última seção navegável e tentando descer, vá para o footer
-			if (currentSection === SECTIONS[SECTIONS.length - 1] && direction > 0) {
-				scrollToSection("footer");
-			}
-			// Se estamos no footer e tentando subir, vá para a última seção navegável
-			else if (currentSection === "footer" && direction < 0) {
-				scrollToSection(SECTIONS[SECTIONS.length - 1]);
-			} 
-			// Se estamos na seção de benefícios e descendo, vá para a seção de compra
-			else if (currentSection === "beneficios" && direction > 0) {
-				scrollToSection("compra");
-			}
-			// Se estamos na seção de compra e subindo, vá para a seção de benefícios
-			else if (currentSection === "compra" && direction < 0) {
-				scrollToSection("beneficios");
-			}
-			// Se estamos na seção de compra e descendo, vá para a seção sobre
-			else if (currentSection === "compra" && direction > 0) {
-				scrollToSection("sobre");
-			}
-			// Se estamos na seção sobre e subindo, vá para a seção de compra
-			else if (currentSection === "sobre" && direction < 0) {
-				scrollToSection("compra");
-			}
-			// Caso contrário, navegue normalmente entre as seções principais
-			else {
-				const currentIndex = SECTIONS.indexOf(currentSection);
-				const targetIndex = Math.max(
-					0,
-					Math.min(SECTIONS.length - 1, currentIndex + direction)
-				);
-				if (currentIndex !== targetIndex) {
-					scrollToSection(SECTIONS[targetIndex]);
-				}
-			}
-
-			// Reset do throttle após 500ms
-			clearTimeout(scrollTimeout);
-			scrollTimeout = setTimeout(() => (isScrolling = false), 500);
-
-			// Atualiza a posição inicial do toque
-			touchStartY = touchEndY;
+            const touchEndY = e.touches[0].clientY;
+            const touchDiff = touchStartY - touchEndY;
+            
+            // Não processa gestos pequenos
+            if (Math.abs(touchDiff) < TOUCH_THRESHOLD) return;
+            
+            // Caso especial para FAQ: só navega para o footer em caso de swipe forte para baixo
+            if (currentSection === "faq") {
+                if (touchDiff > STRONG_SWIPE_THRESHOLD && isScrollingToEndOfFaq(touchDiff)) {
+                    handleNavigation(1, currentSection, () => e.preventDefault());
+                }
+                return;
+            }
+            
+            // Para outras seções
+            e.preventDefault();
+            const direction = touchDiff > 0 ? 1 : -1;
+            handleNavigation(direction, currentSection);
+            
+            // Atualiza a posição inicial do toque
+            touchStartY = touchEndY;
 		};
 
 		// Adiciona event listeners
@@ -562,7 +467,7 @@ export default function HeroSection() {
 			container.removeEventListener("touchmove", handleTouchMove);
 			clearTimeout(scrollTimeout);
 		};
-	}, [getCurrentSection, SECTIONS, scrollToSection]);
+	}, [getCurrentSection, getNextSection, scrollToSection]);
 
 	return (
 		<div
@@ -759,14 +664,16 @@ export default function HeroSection() {
 								</div>
 							</div>
 
-							<div className="flex bottom-8 left-1/2 transform -translate-x-1/2">
+							
+						</div>
+						
+					</div>
+					<div className="flex bottom-8">
 								<ScrollIndicator
 									onClick={() => scrollToSection("compra")}
 									section="compra"
 								/>
 							</div>
-						</div>
-					</div>
 				</div>
 			</div>
 
@@ -804,53 +711,24 @@ export default function HeroSection() {
 								</div>
 
 								<div className="flex justify-between items-center">
-									<div className="flex space-x-4" id="quantidade-selector">
-										<button
-											className={`${quantity === 6 ? 'bg-pink-100 border-pink-500 active-btn' : 'bg-gray-100'} hover:bg-gray-200 rounded-full py-2 px-6 text-center text-base font-medium transition-colors ring-2 ring-transparent focus:outline-none focus:ring-pink-500`}
-											onClick={() => {
-												setQuantity(6);
-												setTotalPrice(12);
-												document
-													.querySelectorAll("#quantidade-selector button")
-													.forEach((btn) =>
-														btn.classList.remove(
-															"active-btn",
-															"bg-pink-100",
-															"border-pink-500"
-														)
-													);
-												document.querySelector("#quantidade-selector button:first-child")?.classList.add(
-													"active-btn",
-													"bg-pink-100",
-													"border-pink-500"
-												);
-											}}
-										>
-											06 latas
-										</button>
-										<button
-											className={`${quantity === 12 ? 'bg-pink-100 border-pink-500 active-btn' : 'bg-gray-100'} hover:bg-gray-200 rounded-full py-2 px-6 text-center text-base font-medium transition-colors ring-2 ring-transparent focus:outline-none focus:ring-pink-500`}
-											onClick={() => {
-												setQuantity(12);
-												setTotalPrice(24);
-												document
-													.querySelectorAll("#quantidade-selector button")
-													.forEach((btn) =>
-														btn.classList.remove(
-															"active-btn",
-															"bg-pink-100",
-															"border-pink-500"
-														)
-													);
-												document.querySelector("#quantidade-selector button:last-child")?.classList.add(
-													"active-btn",
-													"bg-pink-100",
-													"border-pink-500"
-												);
-											}}
-										>
-											12 latas
-										</button>
+									<div className="flex space-x-4">
+										{[
+											{ value: 6, label: "06 latas", price: 12 },
+											{ value: 12, label: "12 latas", price: 24 }
+										].map(option => (
+											<button
+												key={option.value}
+												className={`${quantity === option.value ? 'bg-pink-100 border-pink-500' : 'bg-gray-100'} 
+													hover:bg-gray-200 rounded-full py-2 px-6 text-center text-base font-medium 
+													transition-colors ring-2 ring-transparent focus:outline-none focus:ring-pink-500`}
+												onClick={() => {
+													setQuantity(option.value);
+													setTotalPrice(option.price);
+												}}
+											>
+												{option.label}
+											</button>
+										))}
 									</div>
 									<span className="font-bold text-2xl italic">{totalPrice}€</span>
 								</div>
@@ -864,8 +742,7 @@ export default function HeroSection() {
 							</div>
 						</div>
 					</div>
-
-					<div className="flex bottom-8 left-1/2 transform -translate-x-1/2 mt-8">
+					<div className="flex bottom-8 py-4">
 						<ScrollIndicator
 							onClick={() => scrollToSection("sobre")}
 							section="sobre"
