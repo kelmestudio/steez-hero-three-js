@@ -57,7 +57,7 @@ export default function HeroSection() {
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
 
 	// Seções disponíveis no site - centralizado para evitar duplicação
-	const SECTIONS = ["inicio", "loja", "beneficios", "sobre", "contato", "faq"];
+	const SECTIONS = ["inicio", "motto", "beneficios", "sobre", "contato", "faq"];
 
 	// Seções adicionais que existem no scroll mas não aparecem na navegação
 	const HIDDEN_SECTIONS = ["compra", "ingredientes"];
@@ -98,7 +98,7 @@ export default function HeroSection() {
 				scale: 0.42,
 				visible: true,
 			},
-			loja: {
+			motto: {
 				position: [-1.2, 1, 10],
 				rotation: [0, Math.PI * 1.05, Math.PI * 0.32],
 				scale: 0.3,
@@ -330,8 +330,8 @@ export default function HeroSection() {
 	const getNextSection = useCallback((currentSection: string, direction: number): string => {
 		// Mapa de navegação: define para cada seção qual é a próxima seção em cada direção
 		const navigationMap: { [key: string]: { up: string; down: string } } = {
-			inicio: { up: "inicio", down: "loja" },
-			loja: { up: "inicio", down: "beneficios" },
+			inicio: { up: "inicio", down: "motto" },
+			motto: { up: "inicio", down: "beneficios" },
 			beneficios: { up: "loja", down: "compra" },
 			compra: { up: "beneficios", down: "ingredientes" },
 			ingredientes: { up: "compra", down: "sobre" },
@@ -607,15 +607,15 @@ export default function HeroSection() {
 
 					{/* Scroll Indicator */}
 					<ScrollIndicator
-						onClick={() => scrollToSection("loja")}
-						section="loja"
+						onClick={() => scrollToSection("motto")}
+						section="motto"
 					/>
 				</div>
 			</div>
 
 			{/* Additional Content for Scroll Effect */}
 			<div
-				id="loja"
+				id="motto"
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always pt-10"
 			>
 				<div className="text-center flex flex-col align-center">
