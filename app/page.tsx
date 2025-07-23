@@ -4,10 +4,10 @@ import { Canvas } from "@react-three/fiber";
 import {
 	Suspense,
 	useEffect,
-	useRef,
 	useState,
 	useMemo,
 	useCallback,
+	useRef
 } from "react";
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
@@ -45,7 +45,7 @@ export default function HeroSection() {
 	const SECTIONS = ["inicio", "loja", "beneficios", "sobre", "contato", "faq"];
 
 	// Seções adicionais que existem no scroll mas não aparecem na navegação
-	const HIDDEN_SECTIONS = ["compra"];
+	const HIDDEN_SECTIONS = ["compra", "ingredientes"];
 
 	// Todas as seções incluindo as ocultas e footer (para scroll snap, mas não para navegação)
 	const ALL_SECTIONS = [...SECTIONS, ...HIDDEN_SECTIONS, "footer"];
@@ -84,20 +84,26 @@ export default function HeroSection() {
 				visible: true,
 			},
 			loja: {
-				position: [-8, -4, 0],
-				rotation: [0, Math.PI * 0.5, 0],
-				scale: 0.6,
+				position: [-1.2, 1, 10],
+				rotation: [0, Math.PI * 1.05, Math.PI * 0.32],
+				scale: 0.3,
 				visible: true,
 			},
 			beneficios: {
-				position: [-6, -4, 0],
+				position: [-6, -4, 10],
 				rotation: [0, Math.PI * 0.25, 0],
 				scale: 0.7,
 				visible: true,
 			},
 			compra: {
 				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 1.75, 0],
+				rotation: [0, Math.PI * 1.75, Math.PI * 0.1],
+				scale: 0.7,
+				visible: true,
+			},
+			ingredientes: {
+				position: [-6, -4, 10],
+				rotation: [0, Math.PI * 0.25, 0],
 				scale: 0.7,
 				visible: true,
 			},
@@ -312,8 +318,9 @@ export default function HeroSection() {
 			inicio: { up: "inicio", down: "loja" },
 			loja: { up: "inicio", down: "beneficios" },
 			beneficios: { up: "loja", down: "compra" },
-			compra: { up: "beneficios", down: "sobre" },
-			sobre: { up: "compra", down: "contato" },
+			compra: { up: "beneficios", down: "ingredientes" },
+			ingredientes: { up: "compra", down: "sobre" },
+			sobre: { up: "ingredientes", down: "contato" },
 			contato: { up: "sobre", down: "faq" },
 			faq: { up: "contato", down: "footer" },
 			footer: { up: "faq", down: "footer" }
@@ -595,8 +602,8 @@ export default function HeroSection() {
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always"
 			>
 				<div className="text-center">
-					<h2 className="text-4xl font-bold text-gray-900 mb-4">
-						Deslize para ver a mágica
+					<h2 className="text-4xl font-bold text-gray-900 mb-4	">
+						Better Than Gin.
 					</h2>
 					<p className="text-xl text-gray-600 mb-8">
 						A lata se anima enquanto você desliza!
@@ -742,6 +749,54 @@ export default function HeroSection() {
 							</div>
 						</div>
 					</div>
+					<div className="flex bottom-8 py-4">
+						<ScrollIndicator
+							onClick={() => scrollToSection("ingredientes")}
+							section="ingredientes"
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Seção de Ingredientes */}
+			<div
+				id="ingredientes"
+				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
+			>
+				<div className="container mx-auto px-6 max-w-7xl">
+					<div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-16">
+						{/* Coluna de texto com os ingredientes */}
+						<div className="w-full md:w-1/2 space-y-8 z-10">
+							<div className="text-left">
+								<div className="flex items-center mb-4">
+									<span className="text-sm font-medium text-gray-500 tracking-wide text">INGREDIENTES</span>
+								</div>
+								<h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight text-black">
+									NATURAL ATÉ O ÚLTIMO GOLE
+								</h2>
+								<p className="text-lg text-gray-600 mb-8">
+									Feita com Gin Cítrico com aromas e extratos naturais, adoçado com Stevia. Sabor autêntico.
+								</p>
+							</div>
+							
+							<div className="flex flex-col space-y-5">
+								<div className="flex items-center gap-3">
+									<div className="bg-gray-200 rounded-full p-3">
+										<span className="text-gray-600 font-medium">i</span>
+									</div>
+									<p className="text-gray-700">Tamanhos disponíveis: <span className="bg-gray-100 py-1 px-3 rounded-full text-sm">250ml</span></p>
+								</div>
+								
+								<Button
+									variant="outline"
+									className="bg-pink-500 text-white hover:bg-pink-600 px-8 py-3 rounded-full w-fit"
+								>
+									Ver ingredientes
+								</Button>
+							</div>
+						</div>
+					</div>
+					
 					<div className="flex bottom-8 py-4">
 						<ScrollIndicator
 							onClick={() => scrollToSection("sobre")}
