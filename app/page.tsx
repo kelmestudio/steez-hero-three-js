@@ -13,12 +13,14 @@ import SloganSteez from "@/components/svg/slogan-steez";
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
 import { Button } from "@/components/ui/button";
-import { Settings, BanIcon, WheatOff, CandyOff, Zap, Info } from "lucide-react";
+import { Settings, Info } from "lucide-react";
 import Header from "@/components/header";
 import FAQSection from "@/components/faq-section";
 import Footer from "@/components/footer";
 import ScrollIndicator from "@/components/scroll-indicator";
 import { NoInteraction } from "@/lib/no-interaction";
+import BeneficiosSection from "@/components/beneficios-section";
+import IngredientesSection from "@/components/ingredientes-section";
 
 // Tipagem para melhorar segurança e autocompletar
 interface CanConfig {
@@ -562,7 +564,7 @@ export default function HeroSection() {
 						<p className="text-lg font-medium text-gray-700 tracking-wide">
 							ÁLCOOL SEM CULPA
 						</p>
-						<div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-black text-red-500 leading-none select-none">
+						<div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-black text-[#F42254] leading-none select-none">
 							<span className="inline-block title-home px-10">PINK</span>
 						</div>
 					</div>
@@ -605,17 +607,16 @@ export default function HeroSection() {
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always pt-10"
 			>
 				<div className="text-center flex flex-col align-center">
-					<h2 className="text-8xl font-bold text-gray-900 mb-4">
+					<h2 className="text-8xl font-bold text-[#181818] mb-4">
 						Better Than Gin.
 					</h2>
 					<SloganSteez className="text-gray-600 mx-auto max-w-md h-12 mb-10" />
 
 					{/* Scroll Indicator */}
 					<div>
-						
 						<ScrollIndicator
-						onClick={() => scrollToSection("beneficios")}
-						section="beneficios"
+							onClick={() => scrollToSection("beneficios")}
+							section="beneficios"
 						/>
 					</div>
 				</div>
@@ -626,66 +627,7 @@ export default function HeroSection() {
 				id="beneficios"
 				className="h-screen bg-gradient-to-b from-white to-pink-50 flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
-				<div className="container mx-auto px-6 max-w-7xl">
-					<div className="flex flex-col md:flex-row-reverse  items-center justify-between gap-4 md:gap-16">
-						{/* Coluna de texto com os benefícios */}
-						<div className="w-full md:w-1/2 space-y-8 z-10">
-							<div className="text-left">
-								<div className="flex items-center mb-4">
-									<span className="text-sm font-medium text-[#F42254] tracking-wide text">
-										BENEFÍCIOS
-									</span>
-								</div>
-								<h2 className="text-3xl md:text-5xl font-bold mb-3 tracking-tight">
-									STEEZ PINK É{" "}
-									<span className="relative inline-block">
-										ZERO
-										<span className="absolute -bottom-1 left-0 w-full h-2 bg-[#F42254]"></span>
-									</span>
-								</h2>
-								<p className="text-lg text-gray-600 mb-10">
-									Desfrute sem culpa. Criado para quem quer curtir com estilo e
-									manter o equilíbrio.
-								</p>
-							</div>
-
-							<div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-								{/* Benefício 1 - Zero açúcares */}
-								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
-									<div className="bg-[#F42254] p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
-										<CandyOff className="h-8 w-8" />
-									</div>
-									<p className="text-xl font-bold">Zero açúcares</p>
-								</div>
-
-								{/* Benefício 2 - Zero glúten */}
-								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
-									<div className="bg-[#F42254] p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
-										<WheatOff className="h-8 w-8" />
-									</div>
-									<p className="text-xl font-bold">Zero glúten</p>
-								</div>
-
-								{/* Benefício 3 - Zero culpa */}
-								<div className="flex flex-col items-center text-center group bg-white rounded-2xl shadow-xl p-8 w-full md:w-1/3">
-									<div className="bg-[#F42254] p-5 rounded-full text-white shadow-lg mb-4 transform transition-all group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-xl">
-										<BanIcon className="h-8 w-8" />
-									</div>
-									<p className="text-xl font-bold">Zero culpa</p>
-								</div>
-							</div>
-
-							
-						</div>
-						
-					</div>
-					<div className="flex bottom-8">
-								<ScrollIndicator
-									onClick={() => scrollToSection("compra")}
-									section="compra"
-								/>
-							</div>
-				</div>
+				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção de Compra */}
@@ -725,11 +667,15 @@ export default function HeroSection() {
 									<div className="flex space-x-4">
 										{[
 											{ value: 6, label: "06 latas", price: 12 },
-											{ value: 12, label: "12 latas", price: 24 }
-										].map(option => (
+											{ value: 12, label: "12 latas", price: 24 },
+										].map((option) => (
 											<button
 												key={option.value}
-												className={`${quantity === option.value ? 'bg-pink-100 border-pink-500' : 'bg-gray-100'} 
+												className={`${
+													quantity === option.value
+														? "bg-pink-100 border-pink-500"
+														: "bg-gray-100"
+												} 
 													hover:bg-gray-200 rounded-full py-2 px-6 text-center text-base font-medium 
 													transition-colors ring-2 ring-transparent focus:outline-none focus:ring-pink-500`}
 												onClick={() => {
@@ -741,7 +687,9 @@ export default function HeroSection() {
 											</button>
 										))}
 									</div>
-									<span className="font-bold text-2xl italic">{totalPrice}€</span>
+									<span className="font-bold text-2xl italic">
+										{totalPrice}€
+									</span>
 								</div>
 
 								<Button
@@ -767,47 +715,7 @@ export default function HeroSection() {
 				id="ingredientes"
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
-				<div className="container mx-auto px-6 max-w-7xl">
-					<div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-16">
-						{/* Coluna de texto com os ingredientes */}
-						<div className="w-full md:w-1/2 space-y-8 z-10">
-							<div className="text-left">
-								<div className="flex items-center mb-4">
-									<span className="text-sm font-medium text-[#F42254] tracking-wide text">INGREDIENTES</span>
-								</div>
-								<h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight text-black">
-									NATURAL ATÉ O ÚLTIMO GOLE
-								</h2>
-								<p className="text-lg text-gray-600 mb-8">
-									Feita com Gin Cítrico com aromas e extratos naturais, adoçado com Stevia. Sabor autêntico.
-								</p>
-							</div>
-							
-							<div className="flex flex-col space-y-5">
-								<div className="flex-row flex items-center gap-3 bg-white rounded-lg p-4 shadow-md max-w-80">
-									<div className="bg-gray-100 rounded-full p-3">
-										<Info className="w-5 h-5 text-gray-600" />
-									</div>
-									<p className="text-gray-700">Tamanhos disponíveis: <span className="bg-gray-100 py-1 px-3 rounded-full text-sm">250ml</span></p>
-								</div>
-								
-								<Button
-									size="lg"
-									className="bg-primary text-white hover:opacity-0.5 px-8 py-4 text-lg font-medium rounded-full w-64"
-								>
-									VER INGREDIENTES
-								</Button>
-							</div>
-						</div>
-					</div>
-					
-					<div className="flex bottom-8 py-4">
-						<ScrollIndicator
-							onClick={() => scrollToSection("sobre")}
-							section="sobre"
-						/>
-					</div>
-				</div>
+				<IngredientesSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Terceira Seção */}
