@@ -22,6 +22,7 @@ import { NoInteraction } from "@/lib/no-interaction";
 import BeneficiosSection from "@/components/beneficios-section";
 import IngredientesSection from "@/components/ingredientes-section";
 import PinkSection from "@/components/pink-section";
+import ContatoSection from "@/components/contato-section";
 
 // sobre-nos section
 import HeartAboutUs from "@/components/svg/heart-about-us";
@@ -105,6 +106,12 @@ export default function HeroSection() {
 				scale: 0.3,
 				visible: true,
 			},
+			ingredientes: {
+				position: [-6, -4, 10],
+				rotation: [0, Math.PI * 1, 0],
+				scale: 0.7,
+				visible: true,
+			},
 			beneficios: {
 				position: [-6, -4, 10],
 				rotation: [0, Math.PI * 0.25, 0],
@@ -114,12 +121,6 @@ export default function HeroSection() {
 			pink: {
 				position: [-6, -4, 10],
 				rotation: [0, Math.PI * 1.75, Math.PI * 0.1],
-				scale: 0.7,
-				visible: true,
-			},
-			ingredientes: {
-				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 0.25, 0],
 				scale: 0.7,
 				visible: true,
 			},
@@ -612,30 +613,9 @@ export default function HeroSection() {
 
 					{/* Scroll Indicator */}
 					<ScrollIndicator
-						onClick={() => scrollToSection("motto")}
-						section="motto"
+						onClick={() => scrollToSection("beneficios")}
+						section="beneficios"
 					/>
-				</div>
-			</div>
-
-			{/* Additional Content for Scroll Effect */}
-			<div
-				id="motto"
-				className="h-screen bg-white flex items-center justify-center snap-start snap-always pt-10"
-			>
-				<div className="text-center flex flex-col align-center">
-					<h2 className="text-8xl font-bold text-[#181818] mb-4">
-						Better Than Gin.
-					</h2>
-					<SloganSteez className="text-gray-600 mx-auto max-w-md h-12 mb-10" />
-
-					{/* Scroll Indicator */}
-					<div>
-						<ScrollIndicator
-							onClick={() => scrollToSection("beneficios")}
-							section="beneficios"
-						/>
-					</div>
 				</div>
 			</div>
 
@@ -688,7 +668,7 @@ export default function HeroSection() {
 									width={1000}
 									height={600}
 								/>
-								<SteezAboutUs className="absolute bottom-4 right-4" />
+								<SteezAboutUs className="absolute bottom-4 right-3" />
 							</CarouselItem>
 							<CarouselItem className="pl-1 md:basis-auto self-center relative">
 								<Image
@@ -699,9 +679,11 @@ export default function HeroSection() {
 									height={366}
 								/>
 								<div className="max-w-[324px] flex justify-between mt-3">
+										
 									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
 										[janeiro-2025]
 									</p>
+									
 									<p className="text-[12px] max-w-[194px] font-medium text-[#2E2E2E]">
 										Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 										Quisque tempus faucibus tellus, eu aliquet augue volutpat
@@ -723,7 +705,7 @@ export default function HeroSection() {
 									width={261}
 									height={356}
 								/>
-								<StarAboutUs className="absolute bottom-4 right-4" />
+								<StarAboutUs className="absolute bottom-3 right-1" />
 							</CarouselItem>
 							<CarouselItem className="pl-1 md:basis-auto relative">
 								<Image
@@ -733,13 +715,15 @@ export default function HeroSection() {
 									width={338}
 									height={597}
 								/>
-								<SunAboutUs className="absolute bottom-4 right-4" />
+							
 							</CarouselItem>
+
+
 						</AutoplayCarousel>
 					</div>
 
 					{/* Scroll Indicator */}
-					<div className="mt-6">
+					<div className="mt-4">
 						<ScrollIndicator
 							onClick={() => scrollToSection("contato")}
 							section="contato"
@@ -748,49 +732,12 @@ export default function HeroSection() {
 				</div>
 			</div>
 
-			{/* Quarta Seção - Contato */}
+			{/* Seção de Contato */}
 			<div
 				id="contato"
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always"
 			>
-				<div className="text-center">
-					<div className="container">
-						<h2 className="text-4xl md:text-[48px] font-semibold text-center uppercase italic">
-							fale connosco
-						</h2>
-
-						<form className="flex flex-col gap-4 max-w-[800px] mx-auto">
-							<input
-								className="w-full bg-white p-3 md:p-5 text-[16px] md:text-[18px] border border-solid border-[#ddd] rounded-lg"
-								type="text"
-								placeholder="Nome"
-							/>
-							<input
-								className="w-full bg-white p-3 md:p-5 text-[16px] md:text-[18px] border border-solid border-[#ddd] rounded-lg"
-								type="email"
-								placeholder="Email"
-							/>
-							<textarea
-								rows={4}
-								className="w-full bg-white p-3 md:p-5 text-[16px] md:text-[18px] border border-solid border-[#ddd] rounded-lg"
-								placeholder="Deseja se tornar um revendedor afiliado, tem uma sugestão ou alguma dúvida sobre a STEEZ? Descreve o motivo do teu contato."
-							/>
-							<button className="bg-black text-white hover:bg-gray-800 px-8 py-4 text-lg font-medium rounded-full">
-								Enviar mensagem
-							</button>
-							<p className="text-[#707070] text-[16px] md:text-[18px]">
-								Suas informações serão processadas, ao continuar você concorda
-								com nossos termos de serviço e política de privacidade.
-							</p>
-						</form>
-					</div>
-
-					{/* Scroll Indicator */}
-					<ScrollIndicator
-						onClick={() => scrollToSection("faq")}
-						section="faq"
-					/>
-				</div>
+				<ContatoSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção de FAQ */}
