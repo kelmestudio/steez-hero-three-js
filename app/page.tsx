@@ -619,6 +619,19 @@ export default function HeroSection() {
 				</div>
 			</div>
 
+			{/* Seção Motto (Slogan) */}
+			<div
+				id="motto"
+				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
+			>
+				<div className="container mx-auto px-6 flex align-center flex-col items-center justify-center text-center">
+					<h2 className="text-5xl md:text-6xl text-[#181818] font-bold pt-32 mb-4">Better Than Gin.</h2>
+					<SloganSteez className="mx-auto mb-8" />
+					
+					<ScrollIndicator onClick={() => scrollToSection("beneficios")} section="beneficios" />
+				</div>
+			</div>
+
 			{/* Seção de Benefícios */}
 			<div
 				id="beneficios"
