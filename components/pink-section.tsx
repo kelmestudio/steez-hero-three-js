@@ -104,8 +104,8 @@ export default function PinkSection({
       </div>
       <div className="flex bottom-8 py-4">
         <ScrollIndicator
-          onClick={() => scrollToSection("ingredientes")}
-          section="ingredientes"
+          onClick={() => scrollToSection("sobre")}
+          section="sobre"
         />
       </div>
     </div>

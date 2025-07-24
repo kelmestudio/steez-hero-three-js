@@ -60,13 +60,11 @@ export default function HeroSection() {
 	const SECTIONS = ["inicio", "beneficios", "sobre", "contato", "faq"];
 
 	// Seções adicionais que existem no scroll mas não aparecem na navegação
-	const HIDDEN_SECTIONS = ["motto", "pink", "ingredientes"];
+	const HIDDEN_SECTIONS = ["motto", "ingredientes", "pink"];
 
 	// Seções na ordem exata de navegação (importante para o scroll funcionar corretamente)
-	const ORDERED_SECTIONS = ["inicio", "motto", "beneficios", "pink", "ingredientes", "sobre", "contato", "faq", "footer"];
+	const ORDERED_SECTIONS = ["inicio", "motto", "beneficios", "ingredientes", "pink", "sobre", "contato", "faq", "footer"];
 	
-	// Todas as seções incluindo as ocultas e footer (para scroll snap, mas não para navegação)
-	const ALL_SECTIONS = ORDERED_SECTIONS;
 
 	// Dados para a seção de FAQ
 	const faqData = [
@@ -335,10 +333,10 @@ export default function HeroSection() {
 		const navigationMap: { [key: string]: { up: string; down: string } } = {
 			inicio: { up: "inicio", down: "motto" },
 			motto: { up: "inicio", down: "beneficios" },
-			beneficios: { up: "motto", down: "pink" },
-			pink: { up: "beneficios", down: "ingredientes" },
-			ingredientes: { up: "pink", down: "sobre" },
-			sobre: { up: "ingredientes", down: "contato" },
+			beneficios: { up: "motto", down: "ingredientes" },
+			ingredientes: { up: "beneficios", down: "pink" },
+			pink: { up: "ingredientes", down: "sobre" },
+			sobre: { up: "pink", down: "contato" },
 			contato: { up: "sobre", down: "faq" },
 			faq: { up: "contato", down: "footer" },
 			footer: { up: "faq", down: "footer" }
@@ -649,6 +647,14 @@ export default function HeroSection() {
 				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
 
+			{/* Seção de Ingredientes */}
+			<div
+				id="ingredientes"
+				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
+			>
+				<IngredientesSection scrollToSection={scrollToSection} />
+			</div>
+
 			{/* Seção Pink */}
 			<div
 				id="pink"
@@ -659,14 +665,6 @@ export default function HeroSection() {
 					initialQuantity={quantity}
 					initialPrice={totalPrice}
 				/>
-			</div>
-
-			{/* Seção de Ingredientes */}
-			<div
-				id="ingredientes"
-				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
-			>
-				<IngredientesSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção Sobre Nós */}
