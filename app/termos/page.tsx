@@ -67,7 +67,7 @@ export default function TermosPage() {
         
         <h2>10. Contato</h2>
         <p>
-          Se você tiver alguma dúvida sobre estes Termos de Uso, entre em contato conosco através do e-mail: contacto@steez.com
+          Se você tiver alguma dúvida sobre estes Termos de Uso, entre em contato connosco através do e-mail: contacto@steez.com
         </p>
       </section>
     </PageLayout>

@@ -6,17 +6,17 @@ import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useRouter } from "next/navigation";
 
-interface CompraSectionProps {
+interface PinkSectionProps {
   scrollToSection: (id: string) => void;
   initialQuantity?: number;
   initialPrice?: number;
 }
 
-export default function CompraSection({ 
+export default function PinkSection({ 
   scrollToSection, 
   initialQuantity = 6, 
   initialPrice = 12 
-}: CompraSectionProps) {
+}: PinkSectionProps) {
   const [quantity, setQuantity] = useState(initialQuantity);
   const [totalPrice, setTotalPrice] = useState(initialPrice);
   const { addItem } = useCart();

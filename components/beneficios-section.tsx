@@ -61,8 +61,8 @@ export default function BeneficiosSection({ scrollToSection }: BeneficiosSection
       </div>
       <div className="flex pt-10">
         <ScrollIndicator
-          onClick={() => scrollToSection("compra")}
-          section="compra"
+          onClick={() => scrollToSection("pink")}
+          section="pink"
         />
       </div>
     </div>

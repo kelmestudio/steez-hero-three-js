@@ -37,7 +37,7 @@ Sim, fazemos envios para todo o território continental. Açores e Madeira estar
 
 ## Quero vender Steez no meu espaço. Como faço?
 
-Ótimo! Entre em contato conosco através do e-mail comercial@steez.com para discutirmos uma parceria.
+Ótimo! Entre em contato connosco através do e-mail comercial@steez.com para discutirmos uma parceria.
 
 ## Quais sabores estão disponíveis?
 

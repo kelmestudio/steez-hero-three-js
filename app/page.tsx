@@ -21,7 +21,7 @@ import ScrollIndicator from "@/components/scroll-indicator";
 import { NoInteraction } from "@/lib/no-interaction";
 import BeneficiosSection from "@/components/beneficios-section";
 import IngredientesSection from "@/components/ingredientes-section";
-import CompraSection from "@/components/compra-section";
+import PinkSection from "@/components/pink-section";
 
 // sobre-nos section
 import HeartAboutUs from "@/components/svg/heart-about-us";
@@ -57,13 +57,16 @@ export default function HeroSection() {
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
 
 	// Seções disponíveis no site - centralizado para evitar duplicação
-	const SECTIONS = ["inicio", "motto", "beneficios", "sobre", "contato", "faq"];
+	const SECTIONS = ["inicio", "beneficios", "sobre", "contato", "faq"];
 
 	// Seções adicionais que existem no scroll mas não aparecem na navegação
-	const HIDDEN_SECTIONS = ["compra", "ingredientes"];
+	const HIDDEN_SECTIONS = ["motto", "pink", "ingredientes"];
 
+	// Seções na ordem exata de navegação (importante para o scroll funcionar corretamente)
+	const ORDERED_SECTIONS = ["inicio", "motto", "beneficios", "pink", "ingredientes", "sobre", "contato", "faq", "footer"];
+	
 	// Todas as seções incluindo as ocultas e footer (para scroll snap, mas não para navegação)
-	const ALL_SECTIONS = [...SECTIONS, ...HIDDEN_SECTIONS, "footer"];
+	const ALL_SECTIONS = ORDERED_SECTIONS;
 
 	// Dados para a seção de FAQ
 	const faqData = [
@@ -110,7 +113,7 @@ export default function HeroSection() {
 				scale: 0.7,
 				visible: true,
 			},
-			compra: {
+			pink: {
 				position: [-6, -4, 10],
 				rotation: [0, Math.PI * 1.75, Math.PI * 0.1],
 				scale: 0.7,
@@ -132,7 +135,7 @@ export default function HeroSection() {
 				position: [0, 1, 10],
 				rotation: [0, Math.PI * 1.5, 0],
 				scale: 0.25,
-				visible: true,
+				visible: false,
 			},
 			faq: {
 				position: [0, 0, 0],
@@ -195,7 +198,7 @@ export default function HeroSection() {
 		currentDirection.lastY = currentY;
 
 		// Itera sobre as seções para encontrar a melhor (incluindo footer para scroll)
-		for (const id of ALL_SECTIONS) {
+		for (const id of ORDERED_SECTIONS) {
 			const element = document.getElementById(id);
 			if (!element) continue;
 
@@ -239,7 +242,7 @@ export default function HeroSection() {
 		}
 
 		return bestSection;
-	}, [ALL_SECTIONS]);
+	}, [ORDERED_SECTIONS]);
 
 	// Monitoramento de scroll otimizado para detecção antecipada
 	useEffect(() => {
@@ -332,9 +335,9 @@ export default function HeroSection() {
 		const navigationMap: { [key: string]: { up: string; down: string } } = {
 			inicio: { up: "inicio", down: "motto" },
 			motto: { up: "inicio", down: "beneficios" },
-			beneficios: { up: "loja", down: "compra" },
-			compra: { up: "beneficios", down: "ingredientes" },
-			ingredientes: { up: "compra", down: "sobre" },
+			beneficios: { up: "motto", down: "pink" },
+			pink: { up: "beneficios", down: "ingredientes" },
+			ingredientes: { up: "pink", down: "sobre" },
 			sobre: { up: "ingredientes", down: "contato" },
 			contato: { up: "sobre", down: "faq" },
 			faq: { up: "contato", down: "footer" },
@@ -360,6 +363,9 @@ export default function HeroSection() {
 			const currentSection = getCurrentSection();
 			const direction = e.key === "ArrowDown" ? 1 : -1;
 			const nextSection = getNextSection(currentSection, direction);
+			
+			// Log para debug
+			console.log(`Tecla: ${e.key}, Seção atual: ${currentSection}, Próxima: ${nextSection}`);
 			
 			if (nextSection !== currentSection) {
 				scrollToSection(nextSection);
@@ -394,8 +400,7 @@ export default function HeroSection() {
                 // Verificar se estamos no final da seção FAQ antes de navegar
                 const faqElement = document.getElementById("faq");
                 const isAtEnd = faqElement && 
-                    (window.innerHeight + window.scrollY) > 
-                    (document.documentElement.scrollHeight - 100);
+                    isScrollingToEndOfFaq(direction);
                 
                 if (isAtEnd) {
                     scrollToSection("footer");
@@ -408,6 +413,7 @@ export default function HeroSection() {
                 const nextSection = getNextSection(currentSection, direction);
                 if (nextSection !== currentSection) {
                     scrollToSection(nextSection);
+                    console.log(`Navegando de ${currentSection} para ${nextSection} (direção: ${direction})`);
                 }
             }
             
@@ -440,8 +446,9 @@ export default function HeroSection() {
             if (!faqContent) return false;
             
             // Verifica se o scroll está próximo do final
+            // Ajustado para 50px para detectar o final um pouco antes e garantir transição suave
             return (faqContent.scrollTop + faqContent.clientHeight) >= 
-                   (faqContent.scrollHeight - 20);
+                   (faqContent.scrollHeight - 50);
         };
 
 		// Manipulador de eventos de toque para suporte mobile
@@ -586,7 +593,7 @@ export default function HeroSection() {
 						<Button
 							size="lg"
 							className="bg-black text-white hover:bg-gray-800 px-8 py-4 text-lg font-medium rounded-full"
-							onClick={() => scrollToSection("compra")}
+							onClick={() => scrollToSection("pink")}
 						>
 							COMPRAR AGORA
 						</Button>
@@ -642,14 +649,14 @@ export default function HeroSection() {
 				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
 
-			{/* Seção de Compra */}
+			{/* Seção Pink */}
 			<div
-				id="compra"
+				id="pink"
 				className="h-screen bg-gradient-to-b from-white to-pink-50 flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
-				<CompraSection 
-					scrollToSection={scrollToSection} 
-					initialQuantity={quantity} 
+				<PinkSection
+					scrollToSection={scrollToSection}
+					initialQuantity={quantity}
 					initialPrice={totalPrice}
 				/>
 			</div>
@@ -668,41 +675,70 @@ export default function HeroSection() {
 				className="h-screen bg-gray-100 flex flex-col items-center justify-center snap-start snap-always"
 			>
 				<div className="container mx-auto px-0 flex flex-col items-center justify-center">
-				
 					<div className="relative w-full max-h-[70vh]">
-						<AutoplayCarousel 
-							className="w-full" 
-							autoplayDelay={2000} 
-							loop={true} 
+						<AutoplayCarousel
+							className="w-full"
+							autoplayDelay={2000}
+							loop={true}
 							align="start"
 						>
 							<CarouselItem className="pl-1 md:basis-auto relative">
-								<Image src="/images/slider-01.png" alt="Slider 01" className="max-w-[1000px] min-w-full max-h-[60vh] object-contain z-10" width={1000} height={600} />
+								<Image
+									src="/images/slider-01.png"
+									alt="Slider 01"
+									className="max-w-[1000px] min-w-full max-h-[60vh] object-contain z-10"
+									width={1000}
+									height={600}
+								/>
 								<SteezAboutUs className="absolute bottom-4 right-4" />
 							</CarouselItem>
 							<CarouselItem className="pl-1 md:basis-auto self-center relative">
-								<Image src="/images/slider-02.png" alt="Slider 02" className="max-w-[436px] min-w-full max-h-[50vh] object-contain z-10" width={436} height={366} />
+								<Image
+									src="/images/slider-02.png"
+									alt="Slider 02"
+									className="max-w-[436px] min-w-full max-h-[50vh] object-contain z-10"
+									width={436}
+									height={366}
+								/>
 								<div className="max-w-[324px] flex justify-between mt-3">
-									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">[janeiro-2025]</p>
-									<p className="text-[12px] max-w-[194px] font-medium text-[#2E2E2E]">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque tempus faucibus tellus, eu aliquet augue volutpat ultrices.</p>
+									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
+										[janeiro-2025]
+									</p>
+									<p className="text-[12px] max-w-[194px] font-medium text-[#2E2E2E]">
+										Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+										Quisque tempus faucibus tellus, eu aliquet augue volutpat
+										ultrices.
+									</p>
 								</div>
 								<HeartAboutUs className="absolute bottom-4 right-4" />
 							</CarouselItem>
 							<CarouselItem className="pl-1 md:basis-auto self-end relative">
 								<div className="flex items-center justify-center mb-3">
-									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">[2025]</p>
+									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
+										[2025]
+									</p>
 								</div>
-								<Image src="/images/slider-03.png" alt="Slider 03" className="max-w-[261px] min-w-full max-h-[50vh] object-contain" width={261} height={356} />
+								<Image
+									src="/images/slider-03.png"
+									alt="Slider 03"
+									className="max-w-[261px] min-w-full max-h-[50vh] object-contain"
+									width={261}
+									height={356}
+								/>
 								<StarAboutUs className="absolute bottom-4 right-4" />
 							</CarouselItem>
 							<CarouselItem className="pl-1 md:basis-auto relative">
-								<Image src="/images/slider-04.png" alt="Slider 04" className="max-w-[338px] min-w-full max-h-[50vh] object-contain" width={338} height={597} />
+								<Image
+									src="/images/slider-04.png"
+									alt="Slider 04"
+									className="max-w-[338px] min-w-full max-h-[50vh] object-contain"
+									width={338}
+									height={597}
+								/>
 								<SunAboutUs className="absolute bottom-4 right-4" />
 							</CarouselItem>
 						</AutoplayCarousel>
 					</div>
-
-				
 
 					{/* Scroll Indicator */}
 					<div className="mt-6">
@@ -720,12 +756,36 @@ export default function HeroSection() {
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always"
 			>
 				<div className="text-center">
-					<h2 className="text-4xl font-bold text-gray-900 mb-4">
-						Entre em contato
-					</h2>
-					<p className="text-xl text-gray-600 mb-8">
-						Estamos aqui para responder todas as suas dúvidas!
-					</p>
+					<div className="container">
+						<h2 className="text-4xl md:text-[48px] font-semibold text-center uppercase italic">
+							fale connosco
+						</h2>
+
+						<form className="flex flex-col gap-4 max-w-[800px] mx-auto">
+							<input
+								className="w-full bg-white p-3 md:p-5 text-[16px] md:text-[18px] border border-solid border-[#ddd] rounded-lg"
+								type="text"
+								placeholder="Nome"
+							/>
+							<input
+								className="w-full bg-white p-3 md:p-5 text-[16px] md:text-[18px] border border-solid border-[#ddd] rounded-lg"
+								type="email"
+								placeholder="Email"
+							/>
+							<textarea
+								rows={4}
+								className="w-full bg-white p-3 md:p-5 text-[16px] md:text-[18px] border border-solid border-[#ddd] rounded-lg"
+								placeholder="Deseja se tornar um revendedor afiliado, tem uma sugestão ou alguma dúvida sobre a STEEZ? Descreve o motivo do teu contato."
+							/>
+							<button className="bg-black text-white hover:bg-gray-800 px-8 py-4 text-lg font-medium rounded-full">
+								Enviar mensagem
+							</button>
+							<p className="text-[#707070] text-[16px] md:text-[18px]">
+								Suas informações serão processadas, ao continuar você concorda
+								com nossos termos de serviço e política de privacidade.
+							</p>
+						</form>
+					</div>
 
 					{/* Scroll Indicator */}
 					<ScrollIndicator

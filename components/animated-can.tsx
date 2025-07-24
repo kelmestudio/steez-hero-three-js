@@ -50,7 +50,7 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: Animated
   // Configurações default por seção
   const defaultConfigs: CanConfigs = {
     inicio: { position: [0, 0, 10], rotation: [0, 0, 0], scale: 0.42 },
-    loja: { position: [0, 0, 10], rotation: [0, Math.PI * 0.5, 0], scale: 0.7 },
+    pink: { position: [0, 0, 10], rotation: [0, Math.PI * 0.5, 0], scale: 0.7 },
     sobre: { position: [2, 0, 10], rotation: [0, Math.PI, 0], scale: 0.4 },
     contato: { position: [0, 2, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.6 }
   };
