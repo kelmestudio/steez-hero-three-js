@@ -59,13 +59,10 @@ export default function HeroSection() {
 	// Estado para controlar a visibilidade do painel de configuração
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
 
-	// Seções disponíveis no site - centralizado para evitar duplicação
+	// Seções disponíveis no site
 	const SECTIONS = ["inicio", "beneficios", "sobre", "contato", "faq"];
 
-	// Seções adicionais que existem no scroll mas não aparecem na navegação
-	const HIDDEN_SECTIONS = ["motto", "ingredientes", "pink"];
-
-	// Seções na ordem exata de navegação (importante para o scroll funcionar corretamente)
+	// Seções na ordem exata de navegação
 	const ORDERED_SECTIONS = ["inicio", "motto", "beneficios", "ingredientes", "pink", "sobre", "contato", "faq", "footer"];
 	
 
@@ -93,7 +90,7 @@ export default function HeroSection() {
 		},
 	];
 
-	// Configurações padrão para o modelo 3D em cada seção
+	// Configurações do modelo 3D para cada seção
 	const defaultCanConfigs = useMemo<SectionConfigs>(
 		() => ({ 
 			inicio: {
@@ -151,25 +148,18 @@ export default function HeroSection() {
 	const [canConfigs, setCanConfigs] =
 		useState<SectionConfigs>(defaultCanConfigs);
 
-	// Referência para controlar a direção do scroll (com verificação para SSR)
+	// Referência para controlar a direção do scroll
 	const scrollDirection = useRef({ lastY: 0, direction: 0 });
 
-	// Define a função scrollToSection para navegação entre seções
+	// Navegação entre seções
 	const scrollToSection = useCallback(
 		(id: string) => {
-			// Verificação para SSR
 			if (typeof document === "undefined") return;
 
 			const element = document.getElementById(id);
-			if (!element) return;
+			if (!element || activeSection === id) return;
 
-			// Evita scroll redundante
-			if (activeSection === id) return;
-
-			// Atualiza a seção ativa imediatamente para feedback visual
 			setActiveSection(id);
-
-			// Use scrollIntoView nativo para navegação suave
 			element.scrollIntoView({
 				behavior: "smooth",
 				block: "start",
@@ -178,16 +168,15 @@ export default function HeroSection() {
 		[activeSection]
 	);
 
-	// Helper otimizado para encontrar a seção que está entrando no viewport
+	// Detecção da seção ativa baseada no viewport
 	const getCurrentSection = useCallback(() => {
 		if (typeof window === "undefined") return "inicio";
 
 		let bestSection = "inicio";
 		let bestScore = -Infinity;
 		const viewportHeight = window.innerHeight;
-		const scrollThreshold = 50; // Para detecção mais estável
+		const scrollThreshold = 50;
 
-		// Atualiza a direção do scroll
 		const currentY = window.scrollY;
 		const currentDirection = scrollDirection.current;
 		currentDirection.direction =
@@ -198,42 +187,31 @@ export default function HeroSection() {
 				: currentDirection.direction;
 		currentDirection.lastY = currentY;
 
-		// Itera sobre as seções para encontrar a melhor (incluindo footer para scroll)
 		for (const id of ORDERED_SECTIONS) {
 			const element = document.getElementById(id);
 			if (!element) continue;
 
 			const rect = element.getBoundingClientRect();
 
-			// Seção já está no topo ou quase (prioridade máxima)
-			// Tornamos isso mais tolerante para melhor snap
 			if (Math.abs(rect.top) < scrollThreshold) {
-				// Se estiver próximo o suficiente, considere como ativo
 				return id;
 			}
 
 			let score = -Infinity;
 
-			// Lógica melhorada para calcular a pontuação
 			if (rect.top > 0 && rect.top < viewportHeight) {
-				// Elemento abaixo da viewport, entrando na tela
-				// Quanto mais próximo do topo, maior a pontuação
 				score = viewportHeight - rect.top;
 			} else if (rect.bottom > 0 && rect.top < 0) {
-				// Elemento já parcialmente visível na viewport
-				// Quanto mais visível, maior a pontuação
 				const visibleHeight = Math.min(rect.bottom, viewportHeight);
-				score = visibleHeight * 1.5; // Prioridade aumentada
+				score = visibleHeight * 1.5;
 
-				// Dê ainda mais prioridade se mais da metade estiver visível
 				if (visibleHeight > viewportHeight / 2) {
 					score *= 1.5;
 				}
 			}
 
-			// Ajuste de pontuação para o footer (para melhorar o snap)
 			if (id === "footer" && rect.top < viewportHeight) {
-				score += 100; // Aumenta a chance do footer ser detectado
+				score += 100;
 			}
 
 			if (score > bestScore) {
@@ -245,28 +223,22 @@ export default function HeroSection() {
 		return bestSection;
 	}, [ORDERED_SECTIONS]);
 
-	// Monitoramento de scroll otimizado para detecção antecipada
+	// Monitoramento de mudanças de seção
 	useEffect(() => {
-		// Verificação de segurança para SSR
 		if (typeof window === "undefined") return;
 
 		let lastSection = activeSection;
 		let animationFrameId: number;
-		let lastScrollPosition = window.scrollY;
-		let scrollStopTimer = setTimeout(() => {}, 0); // Inicializa com um timeout vazio
 
-		// Função que verifica continuamente se a seção está mudando
 		const checkSectionChange = () => {
 			const currentScrollY = window.scrollY;
 			setScrollY(currentScrollY);
 			const currentSection = getCurrentSection();
 
-			// Atualiza apenas se a seção mudou
 			if (currentSection !== lastSection) {
 				lastSection = currentSection;
 				setActiveSection(currentSection);
 
-				// Dispara evento apenas se a lata deve ser visível
 				if (
 					currentSection !== "faq" &&
 					currentSection !== "footer" &&
@@ -282,18 +254,11 @@ export default function HeroSection() {
 						})
 					);
 				}
-
-				// Deixamos o CSS cuidar do snap
-				clearTimeout(scrollStopTimer);
 			}
-
-			// Rastreia mudanças de posição para detectar quando o scroll para
-			lastScrollPosition = currentScrollY;
 
 			animationFrameId = requestAnimationFrame(checkSectionChange);
 		};
 
-		// Inicia monitoramento e configura limpeza
 		checkSectionChange();
 
 		const handleScrollStart = () => {
@@ -306,15 +271,13 @@ export default function HeroSection() {
 
 		return () => {
 			cancelAnimationFrame(animationFrameId);
-			clearTimeout(scrollStopTimer);
 			window.removeEventListener("scroll", handleScrollStart);
 			window.removeEventListener("resize", handleScrollStart);
 		};
 	}, [getCurrentSection, activeSection, canConfigs]);
 
-	// Observa mudanças na seção ativa para atualizar a animação da lata
+	// Atualização da animação 3D quando a seção muda
 	useEffect(() => {
-		// Verificação de segurança para SSR + visibilidade da lata
 		if (
 			typeof window === "undefined" ||
 			activeSection === "faq" ||
@@ -323,16 +286,14 @@ export default function HeroSection() {
 			return;
 		}
 
-		// Força atualização imediata da animação 3D quando a seção muda
 		const event = new CustomEvent("sectionChanged", {
 			detail: { section: activeSection, configs: canConfigs },
 		});
 		window.dispatchEvent(event);
 	}, [activeSection, canConfigs]);
 
-	// Função auxiliar para determinar a próxima seção com base na seção atual e direção
+	// Mapa de navegação entre seções
 	const getNextSection = useCallback((currentSection: string, direction: number): string => {
-		// Mapa de navegação: define para cada seção qual é a próxima seção em cada direção
 		const navigationMap: { [key: string]: { up: string; down: string } } = {
 			inicio: { up: "inicio", down: "motto" },
 			motto: { up: "inicio", down: "beneficios" },
@@ -345,28 +306,21 @@ export default function HeroSection() {
 			footer: { up: "faq", down: "footer" }
 		};
 
-		// Determina a direção (para cima ou para baixo)
 		const directionKey = direction < 0 ? "up" : "down";
-		
-		// Retorna a próxima seção com base no mapa de navegação
 		return navigationMap[currentSection]?.[directionKey] || currentSection;
 	}, []);
 
-	// Gerencia navegação por teclado (teclas de seta)
+	// Navegação por teclado
 	useEffect(() => {
 		if (typeof window === "undefined") return;
 
 		const handleKeyDown = (e: KeyboardEvent) => {
-			// Processa apenas teclas de seta para cima e para baixo
 			if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
 
 			e.preventDefault();
 			const currentSection = getCurrentSection();
 			const direction = e.key === "ArrowDown" ? 1 : -1;
 			const nextSection = getNextSection(currentSection, direction);
-			
-			// Log para debug
-			console.log(`Tecla: ${e.key}, Seção atual: ${currentSection}, Próxima: ${nextSection}`);
 			
 			if (nextSection !== currentSection) {
 				scrollToSection(nextSection);
@@ -377,82 +331,30 @@ export default function HeroSection() {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [getCurrentSection, getNextSection, scrollToSection]);
 
-	// Gerencia navegação por scroll com throttling para performance
+	// Navegação por scroll e touch
 	useEffect(() => {
 		const container = mainContainerRef.current;
 		if (!container) return;
 
-		let isScrolling = false;
-		let scrollTimeout: NodeJS.Timeout;
 		let touchStartY = 0;
-        const THROTTLE_DELAY = 500; // ms
-        const TOUCH_THRESHOLD = 30; // pixels
-        const STRONG_SWIPE_THRESHOLD = 70; // pixels
+        const TOUCH_THRESHOLD = 30;
 
-        // Função para lidar com a navegação com base na direção do scroll
-        const handleNavigation = (direction: number, currentSection: string, preventDefault?: () => void) => {
-            if (isScrolling) return;
-            
+        const handleNavigation = (direction: number, currentSection: string, preventDefault?: () => void) => {            
             if (preventDefault) preventDefault();
-            isScrolling = true;
             
-            // Caso especial para FAQ: permitir scroll natural interno
-            if (currentSection === "faq" && direction > 0) {
-                // Verificar se estamos no final da seção FAQ antes de navegar
-                const faqElement = document.getElementById("faq");
-                const isAtEnd = faqElement && 
-                    isScrollingToEndOfFaq(direction);
-                
-                if (isAtEnd) {
-                    scrollToSection("footer");
-                } else {
-                    isScrolling = false;
-                    return;
-                }
-            } else if (currentSection !== "faq") {
-                // Para outras seções, use o mapa de navegação
-                const nextSection = getNextSection(currentSection, direction);
-                if (nextSection !== currentSection) {
-                    scrollToSection(nextSection);
-                    console.log(`Navegando de ${currentSection} para ${nextSection} (direção: ${direction})`);
-                }
+            const nextSection = getNextSection(currentSection, direction);
+            if (nextSection !== currentSection) {
+                scrollToSection(nextSection);
             }
-            
-            // Reset do throttle
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => (isScrolling = false), THROTTLE_DELAY);
         };
 
 		const handleWheel = (e: WheelEvent) => {
 			const currentSection = getCurrentSection();
-            
-            // Permitir scroll natural dentro da seção FAQ
-            if (currentSection === "faq" && !isScrollingToEndOfFaq(e.deltaY)) {
-                return;
-            }
-            
             e.preventDefault();
             const direction = e.deltaY > 0 ? 1 : -1;
             handleNavigation(direction, currentSection);
 		};
-        
-        // Verifica se o scroll está chegando ao fim da seção FAQ
-        const isScrollingToEndOfFaq = (deltaY: number): boolean => {
-            if (deltaY <= 0) return false; // Está scrollando para cima
-            
-            const faqElement = document.getElementById("faq");
-            if (!faqElement) return false;
-            
-            const faqContent = faqElement.querySelector('.overflow-y-auto');
-            if (!faqContent) return false;
-            
-            // Verifica se o scroll está próximo do final
-            // Ajustado para 50px para detectar o final um pouco antes e garantir transição suave
-            return (faqContent.scrollTop + faqContent.clientHeight) >= 
-                   (faqContent.scrollHeight - 50);
-        };
 
-		// Manipulador de eventos de toque para suporte mobile
 		const handleTouchStart = (e: TouchEvent) => {
 			touchStartY = e.touches[0].clientY;
 		};
@@ -462,40 +364,23 @@ export default function HeroSection() {
             const touchEndY = e.touches[0].clientY;
             const touchDiff = touchStartY - touchEndY;
             
-            // Não processa gestos pequenos
             if (Math.abs(touchDiff) < TOUCH_THRESHOLD) return;
             
-            // Caso especial para FAQ: só navega para o footer em caso de swipe forte para baixo
-            if (currentSection === "faq") {
-                if (touchDiff > STRONG_SWIPE_THRESHOLD && isScrollingToEndOfFaq(touchDiff)) {
-                    handleNavigation(1, currentSection, () => e.preventDefault());
-                }
-                return;
-            }
-            
-            // Para outras seções
             e.preventDefault();
             const direction = touchDiff > 0 ? 1 : -1;
             handleNavigation(direction, currentSection);
             
-            // Atualiza a posição inicial do toque
             touchStartY = touchEndY;
 		};
 
-		// Adiciona event listeners
 		container.addEventListener("wheel", handleWheel, { passive: false });
-		container.addEventListener("touchstart", handleTouchStart, {
-			passive: true,
-		});
-		container.addEventListener("touchmove", handleTouchMove, {
-			passive: false,
-		});
+		container.addEventListener("touchstart", handleTouchStart, { passive: true });
+		container.addEventListener("touchmove", handleTouchMove, { passive: false });
 
 		return () => {
 			container.removeEventListener("wheel", handleWheel);
 			container.removeEventListener("touchstart", handleTouchStart);
 			container.removeEventListener("touchmove", handleTouchMove);
-			clearTimeout(scrollTimeout);
 		};
 	}, [getCurrentSection, getNextSection, scrollToSection]);
 
@@ -536,19 +421,6 @@ export default function HeroSection() {
 					/>
 				)}
 
-				{/* Indicador de seção ativa */}
-				<div
-					key={activeSection}
-					className="fixed hidden top-16 left-1/2 transform -translate-x-1/2 bg-[#F42254] text-white py-2 px-6 rounded-full text-sm font-medium z-50 transition-all duration-500 animate-pulse"
-					style={{
-						opacity: 0.9,
-						pointerEvents: "none",
-						boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-					}}
-				>
-					{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
-				</div>
-
 				{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
 				{activeSection === "faq" ||
 				!canConfigs[activeSection as keyof SectionConfigs]?.visible ? null : (
@@ -558,57 +430,25 @@ export default function HeroSection() {
 							style={{
 								width: "100%",
 								height: "100%",
-								pointerEvents: "none", // Defina pointer-events como none diretamente no Canvas
+								pointerEvents: "none",
 							}}
 							gl={{
-								preserveDrawingBuffer: true,
 								antialias: true,
 								alpha: true,
+								powerPreference: "high-performance",
+								precision: "highp" 
 							}}
-							shadows
+							dpr={[1, 2]} // Limita o DPR para melhor performance
+							performance={{ min: 0.5 }} // Permite degradação suave em dispositivos lentos
 						>
-							{/* Luz ambiente suave para iluminação geral mais uniforme */}
-							<ambientLight intensity={2.8} />
-
-							{/* Luz direcional principal para definir a direção principal de iluminação */}
+							{/* Sistema de iluminação ultra-otimizado - menos luzes para melhor performance */}
+							<ambientLight intensity={10} />
+							
+							{/* Luz direcional principal unificada - combina a função das duas luzes anteriores */}
 							<directionalLight
-								position={[5, 15, 5]}
+								position={[5, 6, 5]}
 								intensity={1.2}
 								color="#ffffff"
-								shadow-mapSize={[1024, 1024]}
-							/>
-							
-							{/* Luz direcional frontal suave para iluminar a frente da lata */}
-							<directionalLight
-								position={[0, 3, -8]}
-								intensity={0.4}
-								color="#f0f0ff"
-							/>
-							
-							{/* Luz de preenchimento sutil para reduzir sombras muito escuras */}
-							<directionalLight
-								position={[-5, 2, 3]}
-								intensity={0.2}
-								color="#fffaf0"
-							/>
-
-							{/* Luz especial para realçar a cor vermelha de forma mais sutil */}
-							<spotLight
-								position={[8, 5, 8]}
-								intensity={0.6}
-								angle={0.6}
-								penumbra={0.8}
-								distance={25}
-								decay={2}
-								color="#ff5555"
-							/>
-
-							{/* Luz pontual de destaque para brilho metálico controlado */}
-							<pointLight
-								position={[2, 8, 5]}
-								intensity={0.7}
-								distance={20}
-								decay={2}
 							/>
 
 							<Suspense fallback={null}>
@@ -617,9 +457,9 @@ export default function HeroSection() {
 									scrollY={scrollY}
 									activeSection={activeSection}
 									sectionConfigs={canConfigs}
-									metalness={0.92}
-									roughness={0.2}
-									envMapIntensity={2.5}
+									metalness={0.95}
+									roughness={0.15}
+									envMapIntensity={2.0}
 								/>
 							</Suspense>
 						</Canvas>
@@ -813,31 +653,13 @@ export default function HeroSection() {
 			<div
 				id="faq"
 				className="h-screen bg-gray-50 snap-start snap-always flex flex-col"
-				tabIndex={-1} // Impede que a seção receba foco por teclado
-				onFocus={(e) => e.currentTarget.blur()} // Garante que o elemento não mantenha o foco
 			>
-				<div
-					className="flex-1 flex flex-col justify-center items-center py-16 px-4 sm:px-6 overflow-hidden"
-					onKeyDown={(e) => {
-						// Previne completamente que teclas afetem a navegação
-						e.preventDefault();
-						e.stopPropagation();
-					}}
-					onClick={(e) => {
-						// Remove o foco do elemento que recebeu o clique
-						if (document.activeElement instanceof HTMLElement) {
-							document.activeElement.blur();
-						}
-					}}
-				>
+				<div className="flex-1 flex flex-col justify-center items-center py-16 px-4 sm:px-6 overflow-hidden">
 					<div className="w-full max-w-4xl mx-auto">
 						<h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
 							Perguntas Frequentes
 						</h2>
-						<div
-							className="overflow-y-auto hide-scrollbar pr-2"
-							style={{ maxHeight: "calc(100vh - 260px)" }}
-						>
+						<div className="overflow-y-auto hide-scrollbar pr-2 max-h-[calc(100vh-260px)]">
 							<FAQSection faq={faqData} />
 						</div>
 
