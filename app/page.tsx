@@ -519,7 +519,7 @@ export default function HeroSection() {
 
 				{/* Botão de configuração */}
 				<button
-					className="fixed right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
+					className="fixed hidden right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
 					onClick={() => setShowConfigPanel(!showConfigPanel)}
 				>
 					<Settings className="w-5 h-5" />
