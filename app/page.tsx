@@ -95,7 +95,7 @@ export default function HeroSection() {
 
 	// Configurações padrão para o modelo 3D em cada seção
 	const defaultCanConfigs = useMemo<SectionConfigs>(
-		() => ({
+		() => ({ 
 			inicio: {
 				position: [2.3, 1.4, 10],
 				rotation: [1, 0, Math.PI * 0.5],
@@ -104,19 +104,19 @@ export default function HeroSection() {
 			},
 			motto: {
 				position: [1.4, 1.2, 10],
-				rotation: [Math.PI * 1.66, Math.PI * 0.03, Math.PI * 0.51],
+				rotation: [Math.PI * 1.69, 0.0, Math.PI * 0.51],
 				scale: 0.3,
 				visible: true,
 			},
 			ingredientes: {
 				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 1, 0],
+				rotation: [ Math.PI * 0.06, Math.PI * 1.75, 0],
 				scale: 0.7,
 				visible: true,
 			},
 			beneficios: {
 				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 0.40, 0],
+				rotation: [0, Math.PI * 0.40, Math.PI* 0.10],
 				scale: 0.7,
 				visible: true,
 			},
