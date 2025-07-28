@@ -103,8 +103,8 @@ export default function HeroSection() {
 				visible: true,
 			},
 			motto: {
-				position: [-1.2, 1, 10],
-				rotation: [0, Math.PI * 1.05, Math.PI * 0.32],
+				position: [1.4, 1.2, 10],
+				rotation: [Math.PI * 1.66, Math.PI * 0.03, Math.PI * 0.51],
 				scale: 0.3,
 				visible: true,
 			},
@@ -116,7 +116,7 @@ export default function HeroSection() {
 			},
 			beneficios: {
 				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 0.25, 0],
+				rotation: [0, Math.PI * 0.40, 0],
 				scale: 0.7,
 				visible: true,
 			},
@@ -521,7 +521,7 @@ export default function HeroSection() {
 
 				{/* Botão de configuração */}
 				<button
-					className="fixed hidden right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
+					className="fixed right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
 					onClick={() => setShowConfigPanel(!showConfigPanel)}
 				>
 					<Settings className="w-5 h-5" />
@@ -560,16 +560,78 @@ export default function HeroSection() {
 								height: "100%",
 								pointerEvents: "none", // Defina pointer-events como none diretamente no Canvas
 							}}
-							gl={{ preserveDrawingBuffer: true }}
+							gl={{
+								preserveDrawingBuffer: true,
+								antialias: true,
+								alpha: true,
+							}}
+							shadows
 						>
+							{/* Luz ambiente reduzida para aumentar o contraste e realçar as luzes direcionais */}
 							<ambientLight intensity={3} />
-							<directionalLight position={[5, 15, 5]} intensity={9} />
+
+							{/* Três luzes direcionais de alta intensidade com cores diferentes */}
+							<directionalLight
+								position={[5, 15, 5]}
+								intensity={2}
+								color="#ffffff"
+								shadow-mapSize={[1024, 1024]}
+							/>
+							<directionalLight
+								position={[0, 10, -20]}
+								intensity={0.1}
+								color="#f0f0ff"
+							/>
+							<directionalLight
+								position={[15, 180, 150]}
+								intensity={0.4}
+								color="#fffaf0"
+							/>
+
+							{/* Luz especial para realçar a cor vermelha */}
+							<spotLight
+								position={[120, 15, 8]}
+								intensity={1}
+								angle={0.8}
+								penumbra={1.5}
+								distance={20}
+								decay={2}
+								color="#ff5555"
+							/>
+
+							{/* Luzes pontuais para realçar o brilho metálico */}
+							<pointLight
+								position={[10, 15, 10]}
+								intensity={1}
+								distance={20}
+								decay={2}
+							/>
+							<pointLight
+								position={[-5, -15, 8]}
+								intensity={1}
+								distance={15}
+								decay={2}
+								color="#ffeedd"
+							/>
+							
+							{/* Luz de realce para reflexos brilhantes */}
+							<pointLight
+								position={[0, 18, 5]}
+								intensity={0.1}
+								distance={25}
+								decay={2}
+								color="#ffffff"
+							/>
+
 							<Suspense fallback={null}>
 								<NoInteraction />
 								<AnimatedCan
 									scrollY={scrollY}
 									activeSection={activeSection}
 									sectionConfigs={canConfigs}
+									metalness={0.92}
+									roughness={0.2}
+									envMapIntensity={2.5}
 								/>
 							</Suspense>
 						</Canvas>
@@ -627,10 +689,15 @@ export default function HeroSection() {
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
 				<div className="container mx-auto px-6 flex align-center flex-col items-center justify-center text-center">
-					<h2 className="text-5xl md:text-6xl text-[#181818] font-bold pt-32 mb-4">Better Than Gin.</h2>
+					<h2 className="text-5xl md:text-6xl text-[#181818] font-bold pt-32 mb-4">
+						Better Than Gin.
+					</h2>
 					<SloganSteez className="mx-auto mb-8" />
-					
-					<ScrollIndicator onClick={() => scrollToSection("beneficios")} section="beneficios" />
+
+					<ScrollIndicator
+						onClick={() => scrollToSection("beneficios")}
+						section="beneficios"
+					/>
 				</div>
 			</div>
 
@@ -647,9 +714,9 @@ export default function HeroSection() {
 				id="ingredientes"
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
-				<IngredientesSection 
-					scrollToSection={scrollToSection} 
-					onOpenModal={() => setShowIngredientesModal(true)} 
+				<IngredientesSection
+					scrollToSection={scrollToSection}
+					onOpenModal={() => setShowIngredientesModal(true)}
 				/>
 			</div>
 
@@ -697,11 +764,10 @@ export default function HeroSection() {
 									height={366}
 								/>
 								<div className="max-w-[324px] flex justify-between mt-3">
-										
 									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
 										[janeiro-2025]
 									</p>
-									
+
 									<p className="text-[12px] max-w-[194px] font-medium text-[#2E2E2E]">
 										Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 										Quisque tempus faucibus tellus, eu aliquet augue volutpat
@@ -733,10 +799,7 @@ export default function HeroSection() {
 									width={338}
 									height={597}
 								/>
-							
 							</CarouselItem>
-
-
 						</AutoplayCarousel>
 					</div>
 
@@ -811,9 +874,9 @@ export default function HeroSection() {
 			</div>
 
 			{/* Modal de Ingredientes */}
-			<IngredientesModal 
-				isOpen={showIngredientesModal} 
-				onClose={() => setShowIngredientesModal(false)} 
+			<IngredientesModal
+				isOpen={showIngredientesModal}
+				onClose={() => setShowIngredientesModal(false)}
 			/>
 		</div>
 	);

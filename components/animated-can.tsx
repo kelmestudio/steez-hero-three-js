@@ -1,6 +1,6 @@
 "use client"
 
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Environment } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef, useState, useEffect, useMemo } from "react";
 import * as THREE from "three";
@@ -30,6 +30,9 @@ interface AnimatedCanProps {
   scrollY: number;
   activeSection: string;
   sectionConfigs?: CanConfigs;
+  metalness?: number; 
+  roughness?: number;
+  envMapIntensity?: number;
   lightingConfig?: {
     ambientIntensity?: number;
     directionalIntensity?: number;
@@ -40,7 +43,7 @@ interface AnimatedCanProps {
 /**
  * Componente AnimatedCan - Renderiza uma lata 3D animada que responde às mudanças de seção
  */
-export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: AnimatedCanProps) {
+export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness = 0.95, roughness = 0.1, envMapIntensity = 3.0 }: AnimatedCanProps) {
   // Referência para o grupo principal
   const canRef = useRef<Group>(null);
   
@@ -102,21 +105,22 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: Animated
     // Material principal com a textura base color
     const baseMaterial = new MeshStandardMaterial({
       color: new Color(0xffffff),
-      roughness: 0.3,
-      metalness: 0.7
+      roughness: roughness,
+      metalness: metalness,
+      envMapIntensity: envMapIntensity
     });
     
-    // Material metálico rosa para o anel (#F42153) - Versão mais brilhante
+    // Material metálico rosa para o anel (#F42153) - Versão super brilhante
     const pinkMaterial = new MeshPhysicalMaterial({
       color: new Color("#F42153"),
-      roughness: 0.05,
+      roughness: 0.02,
       metalness: 1.0,
       reflectivity: 1.0,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-      envMapIntensity: 2.0,
-      emissive: new Color("#F42153").multiplyScalar(0.3),
-      emissiveIntensity: 0.8
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 4.0,
+      emissive: new Color("#FF2155").multiplyScalar(0.5),
+      emissiveIntensity: 1.2
     });
     
     // Aplicar a textura ao material base se estiver disponível
@@ -277,17 +281,34 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs }: Animated
   // Criar um anel rosa manualmente como fallback
   const ringGeometry = useMemo(() => new THREE.TorusGeometry(0.5, 0.1, 16, 100), []);
   
-  console.log("Debug return structure");
+  // Configuração com suporte a sombras e plano para receber sombras
   return (
-    <group 
-      ref={canRef} 
-      dispose={null}
-      visible={true}
-      raycast={() => {}}
-    >
-      {/* Meshes do modelo */}
-      {meshes}
-    </group>
+    <>
+      {/* Environment map para melhorar reflexões metálicas */}
+      <Environment preset="studio" intensity={1.8} />
+      
+      <group 
+        ref={canRef} 
+        dispose={null}
+        visible={true}
+        raycast={() => {}}
+        castShadow
+        receiveShadow
+      >
+        {/* Meshes do modelo */}
+        {meshes}
+      </group>
+      
+      {/* Plano invisível para receber sombras */}
+      <mesh 
+        rotation={[-Math.PI / 2, 0, 0]} 
+        position={[0, -5, 0]} 
+        receiveShadow
+      >
+        <planeGeometry args={[100, 100]} />
+        <shadowMaterial opacity={0.4} transparent />
+      </mesh>
+    </>
   );
 }
 

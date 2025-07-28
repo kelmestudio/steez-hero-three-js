@@ -63,7 +63,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 		<div className="container mx-auto px-4 sm:px-6 py-8 max-h-screen flex flex-col justify-center">
 			<div className="text-center mb-6">
 				<h2 className="text-3xl md:text-4xl font-semibold text-center uppercase italic text-[#181818]">
-					Fale Connosco
+					Fala Connosco
 				</h2>
 				<p className="text-gray-600 mt-2 max-w-lg mx-auto">
 					Tem uma pergunta ou sugestão? Estamos aqui para ajudar.
