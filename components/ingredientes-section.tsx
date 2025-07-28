@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 
 interface IngredientesSectionProps {
   scrollToSection: (id: string) => void;
+  onOpenModal?: () => void;
 }
 
-export default function IngredientesSection({ scrollToSection }: IngredientesSectionProps) {
+export default function IngredientesSection({ scrollToSection, onOpenModal }: IngredientesSectionProps) {
   return (
     <div className="container mx-auto px-6 max-w-7xl">
       <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-16">
@@ -45,6 +46,7 @@ export default function IngredientesSection({ scrollToSection }: IngredientesSec
             <Button
               size="lg"
               className="bg-[#181818] text-white hover:opacity-0.5 px-8 py-4 text-lg font-medium rounded-full w-64"
+              onClick={onOpenModal}
             >
               VER INGREDIENTES
             </Button>

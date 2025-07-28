@@ -23,6 +23,7 @@ import BeneficiosSection from "@/components/beneficios-section";
 import IngredientesSection from "@/components/ingredientes-section";
 import PinkSection from "@/components/pink-section";
 import ContatoSection from "@/components/contato-section";
+import IngredientesModal from "@/components/ingredientes-modal";
 
 // sobre-nos section
 import HeartAboutUs from "@/components/svg/heart-about-us";
@@ -53,6 +54,7 @@ export default function HeroSection() {
 	const mainContainerRef = useRef<HTMLDivElement>(null);
 	const [quantity, setQuantity] = useState(6);
 	const [totalPrice, setTotalPrice] = useState(12);
+	const [showIngredientesModal, setShowIngredientesModal] = useState(false);
 
 	// Estado para controlar a visibilidade do painel de configuração
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
@@ -600,7 +602,7 @@ export default function HeroSection() {
 							variant="outline"
 							size="lg"
 							className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-medium rounded-full bg-transparent"
-							onClick={() => scrollToSection("ingredientes")}
+							onClick={() => setShowIngredientesModal(true)}
 						>
 							VER INGREDIENTES
 						</Button>
@@ -645,7 +647,10 @@ export default function HeroSection() {
 				id="ingredientes"
 				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
-				<IngredientesSection scrollToSection={scrollToSection} />
+				<IngredientesSection 
+					scrollToSection={scrollToSection} 
+					onOpenModal={() => setShowIngredientesModal(true)} 
+				/>
 			</div>
 
 			{/* Seção Pink */}
@@ -804,6 +809,12 @@ export default function HeroSection() {
 					<Footer />
 				</div>
 			</div>
+
+			{/* Modal de Ingredientes */}
+			<IngredientesModal 
+				isOpen={showIngredientesModal} 
+				onClose={() => setShowIngredientesModal(false)} 
+			/>
 		</div>
 	);
 }
