@@ -116,7 +116,7 @@ export default function HeroSection() {
 			},
 			beneficios: {
 				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 0.40, Math.PI* 0.10],
+				rotation: [0, Math.PI * 0.92, Math.PI* 0.10],
 				scale: 0.7,
 				visible: true,
 			},
