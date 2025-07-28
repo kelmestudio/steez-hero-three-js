@@ -602,7 +602,7 @@ export default function HeroSection() {
 							variant="outline"
 							size="lg"
 							className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-medium rounded-full bg-transparent"
-							onClick={() => setShowIngredientesModal(true)}
+							onClick={() => scrollToSection("ingredientes")}
 						>
 							VER INGREDIENTES
 						</Button>
