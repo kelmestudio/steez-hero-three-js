@@ -567,60 +567,48 @@ export default function HeroSection() {
 							}}
 							shadows
 						>
-							{/* Luz ambiente reduzida para aumentar o contraste e realçar as luzes direcionais */}
-							<ambientLight intensity={3} />
+							{/* Luz ambiente suave para iluminação geral mais uniforme */}
+							<ambientLight intensity={2.8} />
 
-							{/* Três luzes direcionais de alta intensidade com cores diferentes */}
+							{/* Luz direcional principal para definir a direção principal de iluminação */}
 							<directionalLight
 								position={[5, 15, 5]}
-								intensity={2}
+								intensity={1.2}
 								color="#ffffff"
 								shadow-mapSize={[1024, 1024]}
 							/>
+							
+							{/* Luz direcional frontal suave para iluminar a frente da lata */}
 							<directionalLight
-								position={[0, 10, -20]}
-								intensity={0.1}
+								position={[0, 3, -8]}
+								intensity={0.4}
 								color="#f0f0ff"
 							/>
+							
+							{/* Luz de preenchimento sutil para reduzir sombras muito escuras */}
 							<directionalLight
-								position={[15, 180, 150]}
-								intensity={0.4}
+								position={[-5, 2, 3]}
+								intensity={0.2}
 								color="#fffaf0"
 							/>
 
-							{/* Luz especial para realçar a cor vermelha */}
+							{/* Luz especial para realçar a cor vermelha de forma mais sutil */}
 							<spotLight
-								position={[120, 15, 8]}
-								intensity={1}
-								angle={0.8}
-								penumbra={1.5}
-								distance={20}
+								position={[8, 5, 8]}
+								intensity={0.6}
+								angle={0.6}
+								penumbra={0.8}
+								distance={25}
 								decay={2}
 								color="#ff5555"
 							/>
 
-							{/* Luzes pontuais para realçar o brilho metálico */}
+							{/* Luz pontual de destaque para brilho metálico controlado */}
 							<pointLight
-								position={[10, 15, 10]}
-								intensity={1}
+								position={[2, 8, 5]}
+								intensity={0.7}
 								distance={20}
 								decay={2}
-							/>
-							<pointLight
-								position={[-5, -15, 8]}
-								intensity={1}
-								distance={15}
-								decay={2}
-								color="#ffeedd"
-							/>
-							
-							{/* Luz de realce para reflexos brilhantes */}
-							<pointLight
-								position={[0, 18, 5]}
-								intensity={0.1}
-								distance={25}
-								decay={2}
-								color="#ffffff"
 							/>
 
 							<Suspense fallback={null}>
