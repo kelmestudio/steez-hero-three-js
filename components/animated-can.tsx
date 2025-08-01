@@ -121,26 +121,13 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
       envMapIntensity
     });
     
-    // Material metálico rosa para o anel (#F42153) - Otimizado
-    const pinkMaterial = new MeshPhysicalMaterial({
-      color: new Color("#F42153"),
-      roughness: 0.02,
-      metalness: 1.0,
-      reflectivity: 1.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      envMapIntensity: 4.0,
-      emissive: new Color("#FF2155").multiplyScalar(0.5),
-      emissiveIntensity: 1.2
-    });
-    
     // Aplicar a textura ao material base se estiver disponível
     if (baseColorTexture) {
       baseMaterial.map = baseColorTexture;
       baseMaterial.needsUpdate = true;
     }
     
-    return { baseMaterial, pinkMaterial };
+    return { baseMaterial };
   }, [baseColorTexture, roughness, metalness, envMapIntensity]);
   
   // Atualizar alvos quando a seção muda - otimizado
@@ -225,57 +212,24 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
   useEffect(() => {
     Object.keys(nodes).forEach(key => {
       if (nodes[key].isMesh) {
-        // Verificar pela posição Y para identificar o anel superior
-        const isTopPart = nodes[key].position && nodes[key].position.y > 0.5;
-        
-        // Para qualquer parte que esteja na metade superior da lata, aplicar material rosa
-        if (isTopPart) {
-          nodes[key].material = customMaterials.pinkMaterial;
-        } else {
-          nodes[key].material = customMaterials.baseMaterial;
-        }
+        // Aplicar material base para todos os meshes
+        nodes[key].material = customMaterials.baseMaterial;
       }
     });
   }, [nodes, customMaterials]);
 
-  // Identificar componentes do anel de forma otimizada
-  const getRingPatterns = useCallback(() => [
-    'pull_tab', 'ring_top', 'can_lid', 'can_top', 
-    'tab', 'lid', 'anel_superior', 'top', 'upper',
-    'circle', 'ring', 'opening', 'opener', 'pull',
-    'Cylinder', 'Cylinder001', 'Cylinder002'
-  ], []);
-
   // Meshes memoizados e otimizados
   const meshes = useMemo(() => {
-    const ringPatterns = getRingPatterns();
-    
     return Object.keys(nodes)
       .filter(key => nodes[key].isMesh)
       .map(key => {
-        // Estratégia otimizada para identificar o anel da lata
-        const keyLower = key.toLowerCase();
-        const isRing = keyLower.includes('ring') || 
-                       keyLower.includes('top') || 
-                       keyLower.includes('lid') ||
-                       keyLower.includes('cap') ||
-                       keyLower.includes('anel') ||
-                       keyLower.includes('borda');
-        
-        const forceRing = ringPatterns.some(name => key.includes(name));
-        
-        // Usar material pink para o anel, base material para o resto
-        const meshMaterial = (isRing || forceRing) ? 
-          customMaterials.pinkMaterial : 
-          customMaterials.baseMaterial;
-        
         return (
           <mesh
             key={key}
             castShadow
             receiveShadow
             geometry={nodes[key].geometry}
-            material={meshMaterial || nodes[key].material || gltfMaterials[key]}
+            material={customMaterials.baseMaterial}
             position={[
               nodes[key].position.x - centerPoint[0],
               nodes[key].position.y - centerPoint[1],
@@ -287,7 +241,7 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
           />
         );
       });
-  }, [nodes, customMaterials, centerPoint, gltfMaterials, getRingPatterns]);
+  }, [nodes, customMaterials, centerPoint]);
   
   // Remover geometria não utilizada e otimizar
   const shadowPlaneGeometry = useMemo(() => new THREE.PlaneGeometry(100, 100), []);
