@@ -41,6 +41,7 @@ interface SectionConfigs {
 export default function HomePage() {
 	const [scrollY, setScrollY] = useState(0);
 	const [activeSection, setActiveSection] = useState("inicio");
+	const [slideDirection, setSlideDirection] = useState<'up' | 'down' | 'none'>('none');
 	const mainContainerRef = useRef<HTMLDivElement>(null);
 	const [quantity, setQuantity] = useState(6);
 	const [totalPrice, setTotalPrice] = useState(12);
@@ -143,128 +144,36 @@ export default function HomePage() {
 
 	// Navegação entre seções
 	const scrollToSection = useCallback(
-		(id: string) => {
+		(id: string, direction?: number) => {
 			if (typeof document === "undefined") return;
 
 			const element = document.getElementById(id);
 			if (!element || activeSection === id) return;
 
+			// Determina a direção do slide baseada na navegação
+			if (direction !== undefined) {
+				setSlideDirection(direction > 0 ? 'down' : 'up');
+			} else {
+				setSlideDirection('none');
+			}
+
+			// Como removemos o scroll do browser, apenas mudamos a seção ativa
+			// A navegação visual será gerenciada pela lógica da aplicação
 			setActiveSection(id);
-			element.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			});
+
+			// Reset da direção após a transição
+			setTimeout(() => {
+				setSlideDirection('none');
+			}, 500);
 		},
 		[activeSection]
 	);
 
-	// Detecção da seção ativa baseada no viewport
+	// Detecção da seção ativa baseada no activeSection atual
 	const getCurrentSection = useCallback(() => {
-		if (typeof window === "undefined") return "inicio";
-
-		let bestSection = "inicio";
-		let bestScore = -Infinity;
-		const viewportHeight = window.innerHeight;
-		const scrollThreshold = 50;
-
-		const currentY = window.scrollY;
-		const currentDirection = scrollDirection.current;
-		currentDirection.direction =
-			currentY > currentDirection.lastY
-				? 1
-				: currentY < currentDirection.lastY
-				? -1
-				: currentDirection.direction;
-		currentDirection.lastY = currentY;
-
-		for (const id of ORDERED_SECTIONS) {
-			const element = document.getElementById(id);
-			if (!element) continue;
-
-			const rect = element.getBoundingClientRect();
-
-			if (Math.abs(rect.top) < scrollThreshold) {
-				return id;
-			}
-
-			let score = -Infinity;
-
-			if (rect.top > 0 && rect.top < viewportHeight) {
-				score = viewportHeight - rect.top;
-			} else if (rect.bottom > 0 && rect.top < 0) {
-				const visibleHeight = Math.min(rect.bottom, viewportHeight);
-				score = visibleHeight * 1.5;
-
-				if (visibleHeight > viewportHeight / 2) {
-					score *= 1.5;
-				}
-			}
-
-			if (id === "footer" && rect.top < viewportHeight) {
-				score += 100;
-			}
-
-			if (score > bestScore) {
-				bestScore = score;
-				bestSection = id;
-			}
-		}
-
-		return bestSection;
-	}, [ORDERED_SECTIONS]);
-
-	// Monitoramento de mudanças de seção
-	useEffect(() => {
-		if (typeof window === "undefined") return;
-
-		let lastSection = activeSection;
-		let animationFrameId: number;
-
-		const checkSectionChange = () => {
-			const currentScrollY = window.scrollY;
-			setScrollY(currentScrollY);
-			const currentSection = getCurrentSection();
-
-			if (currentSection !== lastSection) {
-				lastSection = currentSection;
-				setActiveSection(currentSection);
-
-				if (
-					currentSection !== "faq" &&
-					currentSection !== "footer" &&
-					canConfigs[currentSection as keyof SectionConfigs]?.visible
-				) {
-					window.dispatchEvent(
-						new CustomEvent("sectionTransitioning", {
-							detail: {
-								section: currentSection,
-								configs: canConfigs,
-								scrollY: currentScrollY,
-							},
-						})
-					);
-				}
-			}
-
-			animationFrameId = requestAnimationFrame(checkSectionChange);
-		};
-
-		checkSectionChange();
-
-		const handleScrollStart = () => {
-			cancelAnimationFrame(animationFrameId);
-			checkSectionChange();
-		};
-
-		window.addEventListener("scroll", handleScrollStart, { passive: true });
-		window.addEventListener("resize", handleScrollStart, { passive: true });
-
-		return () => {
-			cancelAnimationFrame(animationFrameId);
-			window.removeEventListener("scroll", handleScrollStart);
-			window.removeEventListener("resize", handleScrollStart);
-		};
-	}, [getCurrentSection, activeSection, canConfigs]);
+		// Como não temos mais scroll nativo, retornamos a seção ativa atual
+		return activeSection;
+	}, [activeSection]);
 
 	// Atualização da animação 3D quando a seção muda
 	useEffect(() => {
@@ -308,12 +217,14 @@ export default function HomePage() {
 			if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
 
 			e.preventDefault();
+			
+			// Para as setas, navegação imediata sem MIN_SCROLL_DURATION
 			const currentSection = getCurrentSection();
 			const direction = e.key === "ArrowDown" ? 1 : -1;
 			const nextSection = getNextSection(currentSection, direction);
 			
 			if (nextSection !== currentSection) {
-				scrollToSection(nextSection);
+				scrollToSection(nextSection, direction);
 			}
 		};
 
@@ -327,57 +238,154 @@ export default function HomePage() {
 		if (!container) return;
 
 		let touchStartY = 0;
-        const TOUCH_THRESHOLD = 30;
+		let touchStartTime = 0;
+		let isScrolling = false;
+		let scrollStartTime = 0;
+		let lastScrollTime = 0;
+		let isBlocked = false; // Estado de bloqueio global
+		
+		const TOUCH_THRESHOLD = 50; // Aumentado para evitar triggers acidentais
+		const MIN_SCROLL_DURATION = 500; // 500ms mínimo
+		const SCROLL_DEBOUNCE = 400; // Debounce entre scrolls
+		const GLOBAL_BLOCK_DURATION = 500; // Bloqueio global de 500ms
 
-        const handleNavigation = (direction: number, currentSection: string, preventDefault?: () => void) => {            
-            if (preventDefault) preventDefault();
-            
-            const nextSection = getNextSection(currentSection, direction);
-            if (nextSection !== currentSection) {
-                scrollToSection(nextSection);
-            }
-        };
+		const handleNavigation = (direction: number) => {
+			const currentTime = Date.now();
+			
+			// Verifica se está bloqueado globalmente
+			if (isBlocked) {
+				return;
+			}
+			
+			// Evita múltiplas navegações muito próximas
+			if (currentTime - lastScrollTime < SCROLL_DEBOUNCE) {
+				return;
+			}
+			
+			const currentSection = getCurrentSection();
+			const nextSection = getNextSection(currentSection, direction);
+			
+			if (nextSection !== currentSection) {
+				lastScrollTime = currentTime;
+				scrollToSection(nextSection, direction);
+				
+				// Bloqueia todas as interações por 500ms
+				isBlocked = true;
+				setTimeout(() => {
+					isBlocked = false;
+				}, GLOBAL_BLOCK_DURATION);
+			}
+		};
 
 		const handleWheel = (e: WheelEvent) => {
-			const currentSection = getCurrentSection();
-            e.preventDefault();
-            const direction = e.deltaY > 0 ? 1 : -1;
-            handleNavigation(direction, currentSection);
+			e.preventDefault();
+			
+			// Se estiver bloqueado, ignora completamente
+			if (isBlocked) {
+				return;
+			}
+			
+			const currentTime = Date.now();
+			
+			// Inicia o scroll
+			if (!isScrolling) {
+				isScrolling = true;
+				scrollStartTime = currentTime;
+			}
+			
+			// Verifica se já passou tempo suficiente desde o início
+			const scrollDuration = currentTime - scrollStartTime;
+			if (scrollDuration >= MIN_SCROLL_DURATION) {
+				const direction = e.deltaY > 0 ? 1 : -1;
+				handleNavigation(direction);
+				isScrolling = false; // Reset para próxima interação
+			}
 		};
 
 		const handleTouchStart = (e: TouchEvent) => {
+			// Se estiver bloqueado, ignora completamente
+			if (isBlocked) {
+				return;
+			}
+			
 			touchStartY = e.touches[0].clientY;
+			touchStartTime = Date.now();
+			isScrolling = false;
 		};
 
 		const handleTouchMove = (e: TouchEvent) => {
-			const currentSection = getCurrentSection();
-            const touchEndY = e.touches[0].clientY;
-            const touchDiff = touchStartY - touchEndY;
-            
-            if (Math.abs(touchDiff) < TOUCH_THRESHOLD) return;
-            
-            e.preventDefault();
-            const direction = touchDiff > 0 ? 1 : -1;
-            handleNavigation(direction, currentSection);
-            
-            touchStartY = touchEndY;
+			// Se estiver bloqueado, ignora completamente
+			if (isBlocked || !touchStartY || !touchStartTime) {
+				return;
+			}
+			
+			const currentTouch = e.touches[0];
+			const currentTime = Date.now();
+			const touchDiff = touchStartY - currentTouch.clientY;
+			const touchDuration = currentTime - touchStartTime;
+			
+			// Verifica se o movimento é significativo
+			if (Math.abs(touchDiff) < TOUCH_THRESHOLD) return;
+			
+			// Verifica se o touch durou tempo suficiente
+			if (touchDuration < MIN_SCROLL_DURATION) return;
+			
+			e.preventDefault();
+			
+			// Determina direção: positivo = para baixo, negativo = para cima
+			const direction = touchDiff > 0 ? 1 : -1;
+			
+			handleNavigation(direction);
+			
+			// Reset para evitar múltiplos triggers
+			touchStartY = 0;
+			touchStartTime = 0;
 		};
 
+		const handleTouchEnd = () => {
+			// Reset das variáveis de touch
+			touchStartY = 0;
+			touchStartTime = 0;
+			isScrolling = false;
+		};
+
+		// Event listeners
 		container.addEventListener("wheel", handleWheel, { passive: false });
 		container.addEventListener("touchstart", handleTouchStart, { passive: true });
 		container.addEventListener("touchmove", handleTouchMove, { passive: false });
+		container.addEventListener("touchend", handleTouchEnd, { passive: true });
 
 		return () => {
 			container.removeEventListener("wheel", handleWheel);
 			container.removeEventListener("touchstart", handleTouchStart);
 			container.removeEventListener("touchmove", handleTouchMove);
+			container.removeEventListener("touchend", handleTouchEnd);
 		};
 	}, [getCurrentSection, getNextSection, scrollToSection]);
+
+	// Função para gerar classes CSS de animação
+	const getSlideClasses = useCallback((sectionId: string) => {
+		const isActive = activeSection === sectionId;
+		const baseClasses = "absolute inset-0 h-screen transition-all duration-500 ease-in-out";
+		
+		if (isActive) {
+			return `${baseClasses} opacity-100 z-10 transform translate-y-0`;
+		} else {
+			// Determina a direção do slide baseada na direção atual
+			const translateClass = slideDirection === 'down' 
+				? 'transform translate-y-full' 
+				: slideDirection === 'up'
+				? 'transform -translate-y-full'
+				: 'transform translate-y-0';
+			
+			return `${baseClasses} opacity-0 z-0 pointer-events-none ${translateClass}`;
+		}
+	}, [activeSection, slideDirection]);
 
 	return (
 		<div
 			ref={mainContainerRef}
-			className="h-screen overflow-y-auto scroll-smooth snap-y snap-mandatory overflow-x-hidden overscroll-y-contain scroll-pt-16"
+			className="h-screen overflow-hidden"
 		>
 			{/* Header com navegação */}
 			<Header activeSection={activeSection} scrollToSection={scrollToSection} />
@@ -447,7 +455,7 @@ export default function HomePage() {
 			{/* Hero Section */}
 			<div
 				id="inicio"
-				className="relative h-screen flex items-center justify-center pt-20 snap-start snap-always"
+				className={`${getSlideClasses("inicio")} flex items-center justify-center pt-20`}
 			>
 				<HeroSection scrollToSection={scrollToSection} />
 			</div>
@@ -455,7 +463,7 @@ export default function HomePage() {
 			{/* Seção Motto (Slogan) */}
 			<div
 				id="motto"
-				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
+				className={`${getSlideClasses("motto")} flex items-center justify-center`}
 			>
 				<MottoSection scrollToSection={scrollToSection} />
 			</div>
@@ -463,7 +471,7 @@ export default function HomePage() {
 			{/* Seção de Benefícios */}
 			<div
 				id="beneficios"
-				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
+				className={`${getSlideClasses("beneficios")} flex items-center justify-center`}
 			>
 				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
@@ -471,7 +479,7 @@ export default function HomePage() {
 			{/* Seção de Ingredientes */}
 			<div
 				id="ingredientes"
-				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
+				className={`${getSlideClasses("ingredientes")} flex items-center justify-center`}
 			>
 				<IngredientesSection
 					scrollToSection={scrollToSection}
@@ -482,7 +490,7 @@ export default function HomePage() {
 			{/* Seção Pink */}
 			<div
 				id="pink"
-				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
+				className={`${getSlideClasses("pink")} flex items-center justify-center`}
 			>
 				<PinkSection
 					scrollToSection={scrollToSection}
@@ -494,7 +502,7 @@ export default function HomePage() {
 			{/* Seção Sobre Nós */}
 			<div
 				id="sobre"
-				className="h-screen flex flex-col items-center justify-center snap-start snap-always"
+				className={`${getSlideClasses("sobre")} flex flex-col items-center justify-center`}
 			>
 				<AboutSection scrollToSection={scrollToSection} />
 			</div>
@@ -502,7 +510,7 @@ export default function HomePage() {
 			{/* Seção de Contato */}
 			<div
 				id="contato"
-				className="h-screen flex items-center justify-center snap-start snap-always"
+				className={`${getSlideClasses("contato")} flex items-center justify-center`}
 			>
 				<ContatoSection scrollToSection={scrollToSection} />
 			</div>
@@ -510,7 +518,7 @@ export default function HomePage() {
 			{/* Seção de FAQ */}
 			<div
 				id="faq"
-				className="h-screen snap-start snap-always flex flex-col"
+				className={`${getSlideClasses("faq")} flex flex-col`}
 			>
 				<div className="flex-1 flex flex-col justify-center items-center py-16 px-4 sm:px-6 overflow-hidden">
 					<div className="w-full max-w-4xl mx-auto">
@@ -534,7 +542,7 @@ export default function HomePage() {
 			{/* Footer */}
 			<div
 				id="footer"
-				className="h-screen bg-[#181818] snap-start snap-always flex items-center justify-center px-4 sm:px-6"
+				className={`${getSlideClasses("footer")} bg-[#181818] flex items-center justify-center px-4 sm:px-6`}
 			>
 				<div className="w-full max-w-6xl mx-auto text-white">
 					<Footer />
