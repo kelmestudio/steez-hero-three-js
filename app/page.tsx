@@ -367,7 +367,7 @@ export default function HomePage() {
 	// Função para gerar classes CSS de animação
 	const getSlideClasses = useCallback((sectionId: string) => {
 		const isActive = activeSection === sectionId;
-		const baseClasses = "absolute inset-0 h-screen transition-all duration-500 ease-in-out";
+		const baseClasses = "absolute inset-0 h-screen w-screen transition-all duration-500 ease-in-out overflow-hidden";
 		
 		if (isActive) {
 			return `${baseClasses} opacity-100 z-10 transform translate-y-0`;
@@ -386,7 +386,7 @@ export default function HomePage() {
 	return (
 		<div
 			ref={mainContainerRef}
-			className="h-screen overflow-hidden"
+			className="h-screen w-screen overflow-hidden fixed inset-0"
 		>
 			{/* Header com navegação */}
 			<Header activeSection={activeSection} scrollToSection={scrollToSection} />
@@ -411,12 +411,12 @@ export default function HomePage() {
 			{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
 			{activeSection === "faq" ||
 			!canConfigs[activeSection as keyof SectionConfigs]?.visible ? null : (
-				<div className="fixed inset-0 w-full h-full pointer-events-none z-20">
+				<div className="fixed inset-0 w-screen h-screen pointer-events-none z-20 overflow-hidden">
 					<Canvas
 						camera={{ position: [0, 1, 50], fov: 16 }}
 						style={{
-							width: "100%",
-							height: "100%",
+							width: "100vw",
+							height: "100vh",
 							pointerEvents: "none",
 						}}
 						gl={{
