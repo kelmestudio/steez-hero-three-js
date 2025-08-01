@@ -9,32 +9,22 @@ import {
 	useCallback,
 	useRef
 } from "react";
-import SloganSteez from "@/components/svg/slogan-steez";
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
-import { Button } from "@/components/ui/button";
-import { Settings, Info } from "lucide-react";
+import { Settings } from "lucide-react";
 import Header from "@/components/header";
 import FAQSection from "@/components/faq-section";
 import Footer from "@/components/footer";
 import ScrollIndicator from "@/components/scroll-indicator";
 import { NoInteraction } from "@/lib/no-interaction";
+import HeroSection from "@/components/hero-section";
+import MottoSection from "@/components/motto-section";
 import BeneficiosSection from "@/components/beneficios-section";
 import IngredientesSection from "@/components/ingredientes-section";
 import PinkSection from "@/components/pink-section";
+import AboutSection from "@/components/about-section";
 import ContatoSection from "@/components/contato-section";
 import IngredientesModal from "@/components/ingredientes-modal";
-
-// sobre-nos section
-import HeartAboutUs from "@/components/svg/heart-about-us";
-import StarAboutUs from "@/components/svg/star-about-us";
-import SteezAboutUs from "@/components/svg/steez-about-us";
-import SunAboutUs from "@/components/svg/sun-about-us";
-import {
-	CarouselItem,
-} from "@/components/ui/carousel";
-import { AutoplayCarousel } from "@/components/autoplay-carousel";
-import Image from "next/image";
 
 // Tipagem para melhorar segurança e autocompletar
 interface CanConfig {
@@ -48,7 +38,7 @@ interface SectionConfigs {
 	[key: string]: CanConfig;
 }
 
-export default function HeroSection() {
+export default function HomePage() {
 	const [scrollY, setScrollY] = useState(0);
 	const [activeSection, setActiveSection] = useState("inicio");
 	const mainContainerRef = useRef<HTMLDivElement>(null);
@@ -392,147 +382,88 @@ export default function HeroSection() {
 			{/* Header com navegação */}
 			<Header activeSection={activeSection} scrollToSection={scrollToSection} />
 
+			{/* Botão de configuração */}
+			<button
+				className="fixed right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
+				onClick={() => setShowConfigPanel(!showConfigPanel)}
+			>
+				<Settings className="w-5 h-5" />
+			</button>
+
+			{/* Painel de configuração */}
+			{showConfigPanel && (
+				<CanConfigPanel
+					configs={canConfigs}
+					onConfigChange={(newConfigs: any) => setCanConfigs(newConfigs)}
+					activeSection={activeSection}
+				/>
+			)}
+
+			{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
+			{activeSection === "faq" ||
+			!canConfigs[activeSection as keyof SectionConfigs]?.visible ? null : (
+				<div className="fixed inset-0 w-full h-full pointer-events-none z-20">
+					<Canvas
+						camera={{ position: [0, 1, 50], fov: 16 }}
+						style={{
+							width: "100%",
+							height: "100%",
+							pointerEvents: "none",
+						}}
+						gl={{
+							antialias: true,
+							alpha: true,
+							powerPreference: "high-performance",
+							precision: "highp" 
+						}}
+						dpr={[1, 2]} // Limita o DPR para melhor performance
+						performance={{ min: 0.5 }} // Permite degradação suave em dispositivos lentos
+					>
+						{/* Sistema de iluminação ultra-otimizado - menos luzes para melhor performance */}
+						<ambientLight intensity={10} />
+						
+						{/* Luz direcional principal unificada - combina a função das duas luzes anteriores */}
+						<directionalLight
+							position={[5, 6, 5]}
+							intensity={1.2}
+							color="#ffffff"
+						/>
+
+						<Suspense fallback={null}>
+							<NoInteraction />
+							<AnimatedCan
+								scrollY={scrollY}
+								activeSection={activeSection}
+								sectionConfigs={canConfigs}
+								metalness={0.95}
+								roughness={0.15}
+								envMapIntensity={2.0}
+							/>
+						</Suspense>
+					</Canvas>
+				</div>
+			)}
+
 			{/* Hero Section */}
 			<div
 				id="inicio"
 				className="relative h-screen flex items-center justify-center pt-20 snap-start snap-always"
 			>
-				{/* Background Pattern */}
-				<div className="absolute inset-0 opacity-5">
-					<div className="text-[20rem] font-black text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 select-none">
-						STEEZ
-					</div>
-				</div>
-
-				{/* Botão de configuração */}
-				<button
-					className="fixed right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
-					onClick={() => setShowConfigPanel(!showConfigPanel)}
-				>
-					<Settings className="w-5 h-5" />
-				</button>
-
-				{/* Painel de configuração */}
-				{showConfigPanel && (
-					<CanConfigPanel
-						configs={canConfigs}
-						onConfigChange={(newConfigs: any) => setCanConfigs(newConfigs)}
-						activeSection={activeSection}
-					/>
-				)}
-
-				{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
-				{activeSection === "faq" ||
-				!canConfigs[activeSection as keyof SectionConfigs]?.visible ? null : (
-					<div className="fixed inset-0 w-full h-full pointer-events-none z-20">
-						<Canvas
-							camera={{ position: [0, 1, 50], fov: 16 }}
-							style={{
-								width: "100%",
-								height: "100%",
-								pointerEvents: "none",
-							}}
-							gl={{
-								antialias: true,
-								alpha: true,
-								powerPreference: "high-performance",
-								precision: "highp" 
-							}}
-							dpr={[1, 2]} // Limita o DPR para melhor performance
-							performance={{ min: 0.5 }} // Permite degradação suave em dispositivos lentos
-						>
-							{/* Sistema de iluminação ultra-otimizado - menos luzes para melhor performance */}
-							<ambientLight intensity={10} />
-							
-							{/* Luz direcional principal unificada - combina a função das duas luzes anteriores */}
-							<directionalLight
-								position={[5, 6, 5]}
-								intensity={1.2}
-								color="#ffffff"
-							/>
-
-							<Suspense fallback={null}>
-								<NoInteraction />
-								<AnimatedCan
-									scrollY={scrollY}
-									activeSection={activeSection}
-									sectionConfigs={canConfigs}
-									metalness={0.95}
-									roughness={0.15}
-									envMapIntensity={2.0}
-								/>
-							</Suspense>
-						</Canvas>
-					</div>
-				)}
-				{/* Main Content */}
-				<div className="relative z-4 text-center max-w-6xl mx-auto px-6">
-					{/* Tagline */}
-
-					{/* Large Title with 3D Can */}
-					<div className="relative mb-12">
-						<p className="text-lg font-medium text-gray-700 tracking-wide">
-							ÁLCOOL SEM CULPA
-						</p>
-						<div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-black text-[#F42254] leading-none select-none">
-							<span className="inline-block title-home px-10">PINK</span>
-						</div>
-					</div>
-
-					{/* Call to Action Buttons */}
-					<div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-						<Button
-							size="lg"
-							className="bg-black text-white hover:bg-gray-800 px-8 py-4 text-lg font-medium rounded-full"
-							onClick={() => scrollToSection("pink")}
-						>
-							COMPRAR AGORA
-						</Button>
-						<Button
-							variant="outline"
-							size="lg"
-							className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg font-medium rounded-full bg-transparent"
-							onClick={() => scrollToSection("ingredientes")}
-						>
-							VER INGREDIENTES
-						</Button>
-					</div>
-
-					{/* Subtitle */}
-					<p className="text-lg text-gray-600 mb-16">
-						Você vai se surpreender com o frescor
-					</p>
-
-					{/* Scroll Indicator */}
-					<ScrollIndicator
-						onClick={() => scrollToSection("beneficios")}
-						section="beneficios"
-					/>
-				</div>
+				<HeroSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção Motto (Slogan) */}
 			<div
 				id="motto"
-				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
+				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
-				<div className="container mx-auto px-6 flex align-center flex-col items-center justify-center text-center">
-					<h2 className="text-5xl md:text-6xl text-[#181818] font-bold pt-32 mb-4">
-						Better Than Gin.
-					</h2>
-					<SloganSteez className="mx-auto mb-8" />
-
-					<ScrollIndicator
-						onClick={() => scrollToSection("beneficios")}
-						section="beneficios"
-					/>
-				</div>
+				<MottoSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção de Benefícios */}
 			<div
 				id="beneficios"
-				className="h-screen bg-gradient-to-b from-white to-pink-50 flex items-center justify-center snap-start snap-always overflow-hidden"
+				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
 				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
@@ -540,7 +471,7 @@ export default function HeroSection() {
 			{/* Seção de Ingredientes */}
 			<div
 				id="ingredientes"
-				className="h-screen bg-white flex items-center justify-center snap-start snap-always overflow-hidden"
+				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
 				<IngredientesSection
 					scrollToSection={scrollToSection}
@@ -551,7 +482,7 @@ export default function HeroSection() {
 			{/* Seção Pink */}
 			<div
 				id="pink"
-				className="h-screen bg-gradient-to-b from-white to-pink-50 flex items-center justify-center snap-start snap-always overflow-hidden"
+				className="h-screen flex items-center justify-center snap-start snap-always overflow-hidden"
 			>
 				<PinkSection
 					scrollToSection={scrollToSection}
@@ -563,88 +494,15 @@ export default function HeroSection() {
 			{/* Seção Sobre Nós */}
 			<div
 				id="sobre"
-				className="h-screen bg-gray-100 flex flex-col items-center justify-center snap-start snap-always"
+				className="h-screen flex flex-col items-center justify-center snap-start snap-always"
 			>
-				<div className="container mx-auto px-0 flex flex-col items-center justify-center">
-					<div className="relative w-full max-h-[70vh]">
-						<AutoplayCarousel
-							className="w-full"
-							autoplayDelay={2000}
-							loop={true}
-							align="start"
-						>
-							<CarouselItem className="pl-1 md:basis-auto relative">
-								<Image
-									src="/images/slider-01.png"
-									alt="Slider 01"
-									className="max-w-[1000px] min-w-full max-h-[60vh] object-contain z-10"
-									width={1000}
-									height={600}
-								/>
-								<SteezAboutUs className="absolute bottom-4 right-3" />
-							</CarouselItem>
-							<CarouselItem className="pl-1 md:basis-auto self-center relative">
-								<Image
-									src="/images/slider-02.png"
-									alt="Slider 02"
-									className="max-w-[436px] min-w-full max-h-[50vh] object-contain z-10"
-									width={436}
-									height={366}
-								/>
-								<div className="max-w-[324px] flex justify-between mt-3">
-									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
-										[janeiro-2025]
-									</p>
-
-									<p className="text-[12px] max-w-[194px] font-medium text-[#2E2E2E]">
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-										Quisque tempus faucibus tellus, eu aliquet augue volutpat
-										ultrices.
-									</p>
-								</div>
-								<HeartAboutUs className="absolute bottom-4 right-4" />
-							</CarouselItem>
-							<CarouselItem className="pl-1 md:basis-auto self-end relative">
-								<div className="flex items-center justify-center mb-3">
-									<p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
-										[2025]
-									</p>
-								</div>
-								<Image
-									src="/images/slider-03.png"
-									alt="Slider 03"
-									className="max-w-[261px] min-w-full max-h-[50vh] object-contain"
-									width={261}
-									height={356}
-								/>
-								<StarAboutUs className="absolute bottom-3 right-1" />
-							</CarouselItem>
-							<CarouselItem className="pl-1 md:basis-auto relative">
-								<Image
-									src="/images/slider-04.png"
-									alt="Slider 04"
-									className="max-w-[338px] min-w-full max-h-[50vh] object-contain"
-									width={338}
-									height={597}
-								/>
-							</CarouselItem>
-						</AutoplayCarousel>
-					</div>
-
-					{/* Scroll Indicator */}
-					<div className="mt-4">
-						<ScrollIndicator
-							onClick={() => scrollToSection("contato")}
-							section="contato"
-						/>
-					</div>
-				</div>
+				<AboutSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção de Contato */}
 			<div
 				id="contato"
-				className="h-screen bg-white flex items-center justify-center snap-start snap-always"
+				className="h-screen flex items-center justify-center snap-start snap-always"
 			>
 				<ContatoSection scrollToSection={scrollToSection} />
 			</div>
@@ -652,7 +510,7 @@ export default function HeroSection() {
 			{/* Seção de FAQ */}
 			<div
 				id="faq"
-				className="h-screen bg-gray-50 snap-start snap-always flex flex-col"
+				className="h-screen snap-start snap-always flex flex-col"
 			>
 				<div className="flex-1 flex flex-col justify-center items-center py-16 px-4 sm:px-6 overflow-hidden">
 					<div className="w-full max-w-4xl mx-auto">
