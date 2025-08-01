@@ -41,7 +41,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
     
     // Simulação de envio de formulário
     try {
-      // Aqui você pode adicionar a lógica real de envio do formulário
+      // Aqui podes adicionar a lógica real de envio do formulário
       await new Promise(resolve => setTimeout(resolve, 1000));
       setSubmitSuccess(true);
       setFormData({ name: "", email: "", message: "" });
@@ -65,7 +65,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 					Fala Connosco
 				</h2>
 				<p className="text-gray-600 mt-2 max-w-lg mx-auto">
-					Tem uma pergunta ou sugestão? Estamos aqui para ajudar.
+					Tens uma dúvida ou sugestão? Estamos aqui para ajudar.
 				</p>
 			</div>
 
@@ -81,7 +81,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 							</p>
 						</div>
 						<p className="text-gray-600 ml-10">
-							Agradecemos o seu contato, responderemos em breve.
+							Agradecemos o teu contato, responderemos em breve.
 						</p>
 					</div>
 				) : (
@@ -142,7 +142,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 								value={formData.message}
 								onChange={handleChange}
 								className="w-full bg-white p-3 text text-gray-800 border border-solid border-gray-300 rounded-lg focus:border-[#F42254] focus:ring-2 focus:ring-pink-100 focus:outline-none transition-colors"
-								placeholder="Deseja se tornar um revendedor, tem uma sugestão ou dúvida? Conte-nos."
+								placeholder="Desejas tornar-te um revendedor, tens uma sugestão ou dúvida? Conta-nos."
 								required
 							/>
 						</div>
@@ -191,7 +191,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 						</button>
 
 						<p className="text-gray-500 text-center text-xs mt-3">
-							Suas informações serão processadas de acordo com nossos
+							As tuas informações serão processadas de acordo com os nossos
 							<a href="/termos" className="text-[#F42254] hover:underline ml-1">
 								termos de serviço
 							</a>{" "}

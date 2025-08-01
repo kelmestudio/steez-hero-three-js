@@ -326,18 +326,18 @@ export default function CarrinhoPage() {
                 disabled={items.length === 0}
                 onClick={() => {
                   if (items.length > 0) {
-                    // Aqui você implementaria a finalização do pedido
+                    // Aqui implementarias a finalização do pedido
                     showNotification('Pedido finalizado com sucesso!', 'success');
                     
-                    // Em uma implementação real, você enviaria os dados para processamento
+                    // Em uma implementação real, enviarias os dados para processamento
                     // e redirecionaria para uma página de confirmação
                     
                     // Para demonstração, simplesmente mostrar uma notificação de sucesso
                     // Sem usar alert (melhor experiência do usuário)
                     setTimeout(() => {
-                      // Em produção, você redirecionaria para uma página de confirmação
+                      // Em produção, redirecionarias para uma página de confirmação
                       // router.push('/confirmacao-pedido');
-                      showNotification('Obrigado pela sua compra!', 'success', 5000);
+                      showNotification('Obrigado pela tua compra!', 'success', 5000);
                     }, 1000);
                   }
                 }}

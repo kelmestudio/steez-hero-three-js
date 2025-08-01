@@ -48,7 +48,7 @@ export default function HeroSection({ scrollToSection }: HeroSectionProps) {
 
         {/* Subtitle */}
         <p className="text-lg text-gray-600 mb-16">
-          Você vai se surpreender com o frescor
+          Vais surpreender-te com o frescor
         </p>
 
         {/* Scroll Indicator */}

@@ -118,6 +118,10 @@ p, button, .text {
   font-style: normal;
 }
 
+body {
+  font-family: 'Outfit';
+  font-weight: 500;
+}
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'HeadingNow';
@@ -143,6 +147,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   font-style: italic;
 }
+
 
 /* Esconde a barra de rolagem mantendo a funcionalidade */
 .hide-scrollbar {

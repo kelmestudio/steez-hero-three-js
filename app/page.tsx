@@ -76,7 +76,7 @@ export default function HomePage() {
 		{
 			question: "Quero vender Steez no meu espaço. Como faço?",
 			answer:
-				"Boa! Entra em contacto connosco através e-mail para comercial@steez.com.",
+				"Boa! Entra em contacto connosco através do e-mail comercial@steez.com.",
 		},
 	];
 

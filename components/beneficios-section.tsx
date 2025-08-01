@@ -27,7 +27,7 @@ export default function BeneficiosSection({ scrollToSection }: BeneficiosSection
               </span>
             </h2>
             <p className="text-lg text-gray-600 mb-10">
-              Desfrute sem culpa. Criado para quem quer curtir com estilo e
+              Desfruta sem culpa. Criado para quem quer curtir com estilo e
               manter o equilíbrio.
             </p>
           </div>
