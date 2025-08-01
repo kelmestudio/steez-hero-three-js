@@ -8,12 +8,6 @@ interface HeroSectionProps {
 export default function HeroSection({ scrollToSection }: HeroSectionProps) {
   return (
     <>
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="text-[20rem] font-black text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 select-none">
-          STEEZ
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="relative z-4 text-center max-w-6xl mx-auto px-6">

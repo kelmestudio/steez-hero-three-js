@@ -30,12 +30,12 @@ export default function PinkSection({
           <div className="text-left">
             <h3 className="text-4xl font-bold text-[#F42254] mb-2">PINK</h3>
             <div className="flex items-center mb-3">
-              <span className="text-base mr-1 text">4.9</span>
+              <span className="text-base mr-1 text">5.0</span>
               <div className="flex">
                 <span className="text-yellow-400">★★★★★</span>
               </div>
               <span className="text-sm text-gray-400 ml-1 text">
-                (237 avaliações)
+                (0 avaliações)
               </span>
             </div>
             <p className="text-base text-gray-600 mb-8">

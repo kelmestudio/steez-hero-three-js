@@ -190,8 +190,8 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 							)}
 						</button>
 
-						<p className="text-gray-500 text-center text-xs mt-3">
-							As tuas informações serão processadas de acordo com os nossos
+						<p className="text-gray-500 text-center text-sm mt-3">
+							As tuas informações serão processadas de acordo com os<br></br> nossos
 							<a href="/termos" className="text-[#F42254] hover:underline ml-1">
 								termos de serviço
 							</a>{" "}
