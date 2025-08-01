@@ -33,7 +33,7 @@ export default function AgeVerification({ onVerified }: AgeVerificationProps) {
       // Armazena a verificação no localStorage com tratamento de erros
       localStorage.setItem('steez-age-verified', 'true');
     } catch (error) {
-      console.error("Erro ao salvar verificação de idade:", error);
+      // Falhar silenciosamente em produção
     }
     
     // Anima a saída do modal

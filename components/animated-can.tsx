@@ -2,7 +2,7 @@
 
 import { useGLTF, Environment } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import * as THREE from "three";
 import { Group, Mesh, MeshStandardMaterial, MeshPhysicalMaterial, TextureLoader, Color } from "three";
 import { GLTF } from "three-stdlib";
@@ -50,13 +50,13 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
   // Carregar o modelo GLTF
   const { nodes, materials: gltfMaterials } = useGLTF("/models/can.gltf", true) as unknown as GLTFResult;
   
-  // Configurações default por seção
-  const defaultConfigs: CanConfigs = {
+  // Configurações default por seção - memoizadas para evitar recriação
+  const defaultConfigs: CanConfigs = useMemo(() => ({
     inicio: { position: [0, 0, 10], rotation: [0, 0, 0], scale: 0.42 },
     pink: { position: [0, 0, 10], rotation: [0, Math.PI * 0.5, 0], scale: 0.7 },
     sobre: { position: [2, 0, 10], rotation: [0, Math.PI, 0], scale: 0.4 },
     contato: { position: [0, 2, 10], rotation: [0, Math.PI * 1.5, 0], scale: 0.6 }
-  };
+  }), []);
   
   // Usar configurações externas ou defaults
   const configs = sectionConfigs || defaultConfigs;
@@ -70,47 +70,58 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
   const [baseColorTexture, setBaseColorTexture] = useState<THREE.Texture | null>(null);
   const [materialLoaded, setMaterialLoaded] = useState(false);
   
-  // Carregar a textura explicitamente
+  // Carregar a textura com otimizações
   useEffect(() => {
+    let isMounted = true;
     const textureLoader = new TextureLoader();
-    textureLoader.load(
-      '/models/textures/material_baseColor.jpeg',
-      (texture) => {
-        console.log("Textura base color carregada com sucesso");
-        texture.flipY = false; // Importante para GLTF
-        setBaseColorTexture(texture);
-        setMaterialLoaded(true);
-      },
-      // Progress callback
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total * 100) + '% da textura carregada');
-      },
-      // Error callback
-      (error) => {
-        console.error("Erro ao carregar textura:", error);
-        setMaterialLoaded(true); // Continuar mesmo com erro
-      }
-    );
     
-    // Cleanup
+    const loadTexture = async () => {
+      try {
+        const texture = await new Promise<THREE.Texture>((resolve, reject) => {
+          textureLoader.load(
+            '/models/textures/material_baseColor.jpeg',
+            resolve,
+            undefined,
+            reject
+          );
+        });
+        
+        if (isMounted) {
+          texture.flipY = false; // Importante para GLTF
+          texture.generateMipmaps = true;
+          texture.minFilter = THREE.LinearMipmapLinearFilter;
+          texture.magFilter = THREE.LinearFilter;
+          setBaseColorTexture(texture);
+          setMaterialLoaded(true);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setMaterialLoaded(true); // Continuar mesmo com erro
+        }
+      }
+    };
+    
+    loadTexture();
+    
     return () => {
+      isMounted = false;
       if (baseColorTexture) {
         baseColorTexture.dispose();
       }
     };
   }, []);
   
-  // Materiais personalizados - um para o corpo da lata e um para o anel
+  // Materiais personalizados otimizados
   const customMaterials = useMemo(() => {
     // Material principal com a textura base color
     const baseMaterial = new MeshStandardMaterial({
       color: new Color(0xffffff),
-      roughness: roughness,
-      metalness: metalness,
-      envMapIntensity: envMapIntensity
+      roughness,
+      metalness,
+      envMapIntensity
     });
     
-    // Material metálico rosa para o anel (#F42153) - Versão super brilhante
+    // Material metálico rosa para o anel (#F42153) - Otimizado
     const pinkMaterial = new MeshPhysicalMaterial({
       color: new Color("#F42153"),
       roughness: 0.02,
@@ -130,14 +141,15 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
     }
     
     return { baseMaterial, pinkMaterial };
-  }, [baseColorTexture]);
+  }, [baseColorTexture, roughness, metalness, envMapIntensity]);
   
-  // Atualizar alvos quando a seção muda
+  // Atualizar alvos quando a seção muda - otimizado
   useEffect(() => {
-    if (configs[activeSection]) {
-      setTargetPosition(configs[activeSection].position);
-      setTargetRotation(configs[activeSection].rotation);
-      setTargetScale(configs[activeSection].scale);
+    const sectionConfig = configs[activeSection];
+    if (sectionConfig) {
+      setTargetPosition(sectionConfig.position);
+      setTargetRotation(sectionConfig.rotation);
+      setTargetScale(sectionConfig.scale);
     }
   }, [activeSection, configs]);
   
@@ -166,11 +178,11 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
   const lastTimestamp = useRef(Date.now());
   const scrollVelocity = useRef(0);
   
-  // Calcular a velocidade de scroll para efeitos mais suaves
+  // Otimização do cálculo de velocidade de scroll
   useEffect(() => {
-    const now = Date.now();
+    const now = performance.now();
     const delta = now - lastTimestamp.current;
-    if (delta > 0) {
+    if (delta > 16) { // Throttle para 60fps máximo
       const scrollDelta = scrollY - lastScrollY.current;
       scrollVelocity.current = scrollDelta / delta;
       lastScrollY.current = scrollY;
@@ -178,11 +190,11 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
     }
   }, [scrollY]);
   
-  // Animar o modelo a cada frame
-  useFrame((state, delta) => {
+  // Animar o modelo a cada frame - otimizado
+  useFrame(useCallback((state, delta) => {
     if (!canRef.current) return;
     
-    const speed = 0.05;
+    const speed = Math.min(delta * 3, 0.1); // Animação baseada em tempo, limitada
     
     // Posição ajustada pelo centro
     const adjustedPosition = [
@@ -191,36 +203,33 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
       targetPosition[2] + centerPoint[2]
     ];
     
-    // Animar posição
-    canRef.current.position.x += (adjustedPosition[0] - canRef.current.position.x) * speed;
-    canRef.current.position.y += (adjustedPosition[1] - canRef.current.position.y) * speed;
-    canRef.current.position.z += (adjustedPosition[2] - canRef.current.position.z) * speed;
+    // Animar posição com interpolação suave
+    canRef.current.position.lerp(
+      new THREE.Vector3(adjustedPosition[0], adjustedPosition[1], adjustedPosition[2]), 
+      speed
+    );
     
-    // Animar rotação (com efeito de scroll)
+    // Animar rotação (com efeito de scroll) com interpolação suave
     const yRotationWithScroll = targetRotation[1] + scrollY * 0.001;
     canRef.current.rotation.x += (targetRotation[0] - canRef.current.rotation.x) * speed;
     canRef.current.rotation.y += (yRotationWithScroll - canRef.current.rotation.y) * speed;
     canRef.current.rotation.z += (targetRotation[2] - canRef.current.rotation.z) * speed;
     
-    // Animar escala
+    // Animar escala de forma mais eficiente
     const currentScale = canRef.current.scale.x;
-    const newScale = currentScale + (targetScale - currentScale) * speed;
-    canRef.current.scale.set(newScale, newScale, newScale);
-  });
+    const newScale = THREE.MathUtils.lerp(currentScale, targetScale, speed);
+    canRef.current.scale.setScalar(newScale);
+  }, [centerPoint, targetPosition, targetRotation, targetScale, scrollY]));
   
-  // Aplicar materiais aos meshes com abordagem forçada
+  // Aplicar materiais aos meshes de forma otimizada
   useEffect(() => {
-    // Inspecionar todas as partes do modelo
     Object.keys(nodes).forEach(key => {
       if (nodes[key].isMesh) {
         // Verificar pela posição Y para identificar o anel superior
         const isTopPart = nodes[key].position && nodes[key].position.y > 0.5;
         
-        console.log(`Mesh "${key}" - Posição Y: ${nodes[key].position?.y} - É parte superior: ${isTopPart}`);
-        
         // Para qualquer parte que esteja na metade superior da lata, aplicar material rosa
         if (isTopPart) {
-          console.log(`Aplicando material rosa ao mesh "${key}"`);
           nodes[key].material = customMaterials.pinkMaterial;
         } else {
           nodes[key].material = customMaterials.baseMaterial;
@@ -229,33 +238,36 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
     });
   }, [nodes, customMaterials]);
 
-  // Meshes memoizados centrados
+  // Identificar componentes do anel de forma otimizada
+  const getRingPatterns = useCallback(() => [
+    'pull_tab', 'ring_top', 'can_lid', 'can_top', 
+    'tab', 'lid', 'anel_superior', 'top', 'upper',
+    'circle', 'ring', 'opening', 'opener', 'pull',
+    'Cylinder', 'Cylinder001', 'Cylinder002'
+  ], []);
+
+  // Meshes memoizados e otimizados
   const meshes = useMemo(() => {
-    // Log para ajudar na depuração
-    console.log("Meshes disponíveis:", Object.keys(nodes).filter(key => nodes[key].isMesh));
+    const ringPatterns = getRingPatterns();
     
     return Object.keys(nodes)
       .filter(key => nodes[key].isMesh)
       .map(key => {
-        // Verificar qual material usar com base no nome do mesh e posição
-        // Estratégia completa para identificar o anel da lata
-        const isRing = key.toLowerCase().includes('ring') || 
-                       key.toLowerCase().includes('top') || 
-                       key.toLowerCase().includes('lid') ||
-                       key.toLowerCase().includes('cap') ||
-                       key.toLowerCase().includes('anel') ||
-                       key.toLowerCase().includes('borda');
+        // Estratégia otimizada para identificar o anel da lata
+        const keyLower = key.toLowerCase();
+        const isRing = keyLower.includes('ring') || 
+                       keyLower.includes('top') || 
+                       keyLower.includes('lid') ||
+                       keyLower.includes('cap') ||
+                       keyLower.includes('anel') ||
+                       keyLower.includes('borda');
         
-        // Lista muito abrangente de nomes possíveis para o anel
-        const forceRing = [
-          'pull_tab', 'ring_top', 'can_lid', 'can_top', 
-          'tab', 'lid', 'anel_superior', 'top', 'upper',
-          'circle', 'ring', 'opening', 'opener', 'pull',
-          'Cylinder', 'Cylinder001', 'Cylinder002'
-        ].some(name => key.includes(name));
+        const forceRing = ringPatterns.some(name => key.includes(name));
         
         // Usar material pink para o anel, base material para o resto
-        const meshMaterial = isRing || forceRing ? customMaterials.pinkMaterial : customMaterials.baseMaterial;
+        const meshMaterial = (isRing || forceRing) ? 
+          customMaterials.pinkMaterial : 
+          customMaterials.baseMaterial;
         
         return (
           <mesh
@@ -271,27 +283,26 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
             ]}
             rotation={nodes[key].rotation}
             scale={nodes[key].scale}
-            // Adicionando a propriedade pointer-events para permitir que os cliques passem através da lata
             raycast={() => null}
           />
         );
       });
-  }, [nodes, customMaterials, centerPoint]);
+  }, [nodes, customMaterials, centerPoint, gltfMaterials, getRingPatterns]);
   
-  // Criar um anel rosa manualmente como fallback
-  const ringGeometry = useMemo(() => new THREE.TorusGeometry(0.5, 0.1, 16, 100), []);
+  // Remover geometria não utilizada e otimizar
+  const shadowPlaneGeometry = useMemo(() => new THREE.PlaneGeometry(100, 100), []);
+  const shadowMaterial = useMemo(() => new THREE.ShadowMaterial({ opacity: 0.4, transparent: true }), []);
   
   // Configuração com suporte a sombras e plano para receber sombras
   return (
     <>
-      {/* Environment map para melhorar reflexões metálicas */}
-      <Environment preset="studio" intensity={1.8} />
+      {/* Environment map otimizado para melhorar reflexões metálicas */}
+      <Environment preset="studio" />
       
       <group 
         ref={canRef} 
         dispose={null}
         visible={true}
-        raycast={() => {}}
         castShadow
         receiveShadow
       >
@@ -299,15 +310,14 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
         {meshes}
       </group>
       
-      {/* Plano invisível para receber sombras */}
+      {/* Plano otimizado para receber sombras */}
       <mesh 
         rotation={[-Math.PI / 2, 0, 0]} 
         position={[0, -5, 0]} 
         receiveShadow
-      >
-        <planeGeometry args={[100, 100]} />
-        <shadowMaterial opacity={0.4} transparent />
-      </mesh>
+        geometry={shadowPlaneGeometry}
+        material={shadowMaterial}
+      />
     </>
   );
 }

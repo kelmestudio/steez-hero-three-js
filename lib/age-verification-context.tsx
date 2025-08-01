@@ -29,7 +29,6 @@ export function AgeVerificationProvider({ children }: { children: ReactNode }) {
       setIsVerified(ageVerified);
     } catch (error) {
       // Em caso de erro com localStorage, presumir não verificado
-      console.error("Erro ao verificar idade:", error);
       setIsVerified(false);
     } finally {
       setIsLoading(false);
@@ -44,7 +43,7 @@ export function AgeVerificationProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(AGE_VERIFICATION_KEY, 'true');
     } catch (error) {
-      console.error("Erro ao salvar verificação de idade:", error);
+      // Falhar silenciosamente em produção
     }
   };
 

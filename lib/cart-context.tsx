@@ -47,7 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       setIsInitialized(true);
     } catch (error) {
-      console.error("Erro ao carregar carrinho:", error);
+      // Falhar silenciosamente em produção
       setIsInitialized(true);
     }
   }, []);
@@ -64,7 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     } catch (error) {
-      console.error("Erro ao salvar carrinho:", error);
+      // Falhar silenciosamente em produção
     }
   }, [items, isInitialized]);
 
@@ -77,7 +77,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback((item: CartItem) => {
     // Validar entrada
     if (!item || typeof item !== 'object' || !item.packSize) {
-      console.error("Item inválido adicionado ao carrinho");
       return;
     }
     

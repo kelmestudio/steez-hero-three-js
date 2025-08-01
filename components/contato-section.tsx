@@ -47,7 +47,6 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
       setFormData({ name: "", email: "", message: "" });
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (error) {
-      console.error("Erro ao enviar formulário:", error);
       setFormError("Erro ao enviar mensagem. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);
