@@ -153,3 +153,10 @@ h1, h2, h3, h4, h5, h6 {
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+
+body {
+  background-image: url("/images/bg-pattern.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}

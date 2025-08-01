@@ -68,16 +68,26 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
   
   // Estados para textura e material
   const [baseColorTexture, setBaseColorTexture] = useState<THREE.Texture | null>(null);
+  const [pullTabTextures, setPullTabTextures] = useState<{
+    baseColor: THREE.Texture | null;
+    metallicRoughness: THREE.Texture | null;
+    normal: THREE.Texture | null;
+  }>({
+    baseColor: null,
+    metallicRoughness: null,
+    normal: null
+  });
   const [materialLoaded, setMaterialLoaded] = useState(false);
   
-  // Carregar a textura com otimizações
+  // Carregar as texturas com otimizações
   useEffect(() => {
     let isMounted = true;
     const textureLoader = new TextureLoader();
     
-    const loadTexture = async () => {
+    const loadTextures = async () => {
       try {
-        const texture = await new Promise<THREE.Texture>((resolve, reject) => {
+        // Carregar textura base para o corpo da lata
+        const baseTexture = await new Promise<THREE.Texture>((resolve, reject) => {
           textureLoader.load(
             '/models/textures/material_baseColor.jpeg',
             resolve,
@@ -86,34 +96,81 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
           );
         });
         
+        // Carregar texturas do pull tab (material_1_*)
+        const pullTabBaseColor = await new Promise<THREE.Texture>((resolve, reject) => {
+          textureLoader.load(
+            '/models/textures/material_1_baseColor.jpeg',
+            resolve,
+            undefined,
+            reject
+          );
+        });
+        
+        const pullTabMetallicRoughness = await new Promise<THREE.Texture>((resolve, reject) => {
+          textureLoader.load(
+            '/models/textures/material_1_metallicRoughness.png',
+            resolve,
+            undefined,
+            reject
+          );
+        });
+        
+        const pullTabNormal = await new Promise<THREE.Texture>((resolve, reject) => {
+          textureLoader.load(
+            '/models/textures/material_1_normal.png',
+            resolve,
+            undefined,
+            reject
+          );
+        });
+        
         if (isMounted) {
-          texture.flipY = false; // Importante para GLTF
-          texture.generateMipmaps = true;
-          texture.minFilter = THREE.LinearMipmapLinearFilter;
-          texture.magFilter = THREE.LinearFilter;
-          setBaseColorTexture(texture);
+          // Configurar textura base
+          baseTexture.flipY = false;
+          baseTexture.generateMipmaps = true;
+          baseTexture.minFilter = THREE.LinearMipmapLinearFilter;
+          baseTexture.magFilter = THREE.LinearFilter;
+          
+          // Configurar texturas do pull tab
+          [pullTabBaseColor, pullTabMetallicRoughness, pullTabNormal].forEach(texture => {
+            texture.flipY = false;
+            texture.generateMipmaps = true;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+          });
+          
+          setBaseColorTexture(baseTexture);
+          setPullTabTextures({
+            baseColor: pullTabBaseColor,
+            metallicRoughness: pullTabMetallicRoughness,
+            normal: pullTabNormal
+          });
           setMaterialLoaded(true);
         }
       } catch (error) {
+        console.warn('Erro ao carregar texturas:', error);
         if (isMounted) {
           setMaterialLoaded(true); // Continuar mesmo com erro
         }
       }
     };
     
-    loadTexture();
+    loadTextures();
     
     return () => {
       isMounted = false;
       if (baseColorTexture) {
         baseColorTexture.dispose();
       }
+      Object.values(pullTabTextures).forEach(texture => {
+        if (texture) texture.dispose();
+      });
     };
   }, []);
   
   // Materiais personalizados otimizados
   const customMaterials = useMemo(() => {
-    // Material principal com a textura base color
+    // Material principal com a textura base color para o corpo da lata
     const baseMaterial = new MeshStandardMaterial({
       color: new Color(0xffffff),
       roughness,
@@ -121,14 +178,36 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
       envMapIntensity
     });
     
+    // Material cinza claro metálico para o pull tab - SEM texturas para evitar problemas
+    const pullTabMaterial = new MeshPhysicalMaterial({
+			color: new Color("#C7C7C7"), // Gerencie a cor do pulltab (anel da lata) aqui, #F42254 é o pink
+			roughness: 0.05,
+			metalness: 0.95,
+			reflectivity: 1.0,
+			clearcoat: 0.8,
+			clearcoatRoughness: 0.02,
+			envMapIntensity: 3.5,
+			// Garantir que não use nenhuma textura
+			map: null,
+			normalMap: null,
+			roughnessMap: null,
+			metalnessMap: null,
+			transparent: false,
+			opacity: 1.0,
+		});
+    
     // Aplicar a textura ao material base se estiver disponível
     if (baseColorTexture) {
       baseMaterial.map = baseColorTexture;
       baseMaterial.needsUpdate = true;
     }
     
-    return { baseMaterial };
-  }, [baseColorTexture, roughness, metalness, envMapIntensity]);
+    // Pull tab material NÃO recebe texturas - apenas cor sólida cinza metálica
+    // Forçar atualização dos materiais
+    pullTabMaterial.needsUpdate = true;
+    
+    return { baseMaterial, pullTabMaterial };
+  }, [baseColorTexture, pullTabTextures, roughness, metalness, envMapIntensity]);
   
   // Atualizar alvos quando a seção muda - otimizado
   useEffect(() => {
@@ -210,26 +289,81 @@ export function AnimatedCan({ scrollY, activeSection, sectionConfigs, metalness 
   
   // Aplicar materiais aos meshes de forma otimizada
   useEffect(() => {
+    console.log('=== DEBUG: Analisando todos os nós do modelo ===');
+    console.log('Todos os nós disponíveis:', Object.keys(nodes));
+    
     Object.keys(nodes).forEach(key => {
+      const node = nodes[key];
+      console.log(`Nó "${key}":`, {
+        isMesh: node.isMesh,
+        position: node.position,
+        parent: node.parent?.name
+      });
+      
       if (nodes[key].isMesh) {
-        // Aplicar material base para todos os meshes
-        nodes[key].material = customMaterials.baseMaterial;
+        // Identificar pull tab baseado na hierarquia do GLTF
+        // canPullTab -> defaultMaterial (mesh 0) -> material_1
+        // canBody -> defaultMaterial (mesh 1) -> material
+        
+        const isUnderPullTabNode = node.parent?.name === 'canPullTab' ||
+                                  key.toLowerCase().includes('canpulltab') ||
+                                  key.toLowerCase().includes('pull');
+        
+        console.log(`Mesh ${key}: isUnderPullTabNode = ${isUnderPullTabNode}, parent = ${node.parent?.name}`);
+        
+        // Aplicar material específico
+        if (isUnderPullTabNode) {
+          console.log(`✓ Aplicando pullTabMaterial CINZA para: ${key}`);
+          console.log('Material pull tab:', {
+            color: customMaterials.pullTabMaterial.color.getHexString(),
+            metalness: customMaterials.pullTabMaterial.metalness,
+            roughness: customMaterials.pullTabMaterial.roughness,
+            map: customMaterials.pullTabMaterial.map
+          });
+          nodes[key].material = customMaterials.pullTabMaterial;
+        } else {
+          console.log(`✓ Aplicando baseMaterial para: ${key}`);
+          nodes[key].material = customMaterials.baseMaterial;
+        }
+        
+        // Forçar atualização
+        if (nodes[key].material) {
+          nodes[key].material.needsUpdate = true;
+        }
       }
     });
+    
+    console.log('=== FIM DEBUG ===');
   }, [nodes, customMaterials]);
 
   // Meshes memoizados e otimizados
   const meshes = useMemo(() => {
+    console.log('=== RENDERIZANDO MESHES ===');
+    
     return Object.keys(nodes)
       .filter(key => nodes[key].isMesh)
       .map(key => {
+        const node = nodes[key];
+        
+        // Identificar pull tab baseado na hierarquia
+        const isUnderPullTabNode = node.parent?.name === 'canPullTab' ||
+                                  key.toLowerCase().includes('canpulltab') ||
+                                  key.toLowerCase().includes('pull');
+        
+        console.log(`Renderizando mesh: ${key}, isUnderPullTabNode: ${isUnderPullTabNode}, parent: ${node.parent?.name}`);
+        
+        // Selecionar material apropriado
+        const meshMaterial = isUnderPullTabNode ? 
+          customMaterials.pullTabMaterial : 
+          customMaterials.baseMaterial;
+        
         return (
           <mesh
             key={key}
             castShadow
             receiveShadow
             geometry={nodes[key].geometry}
-            material={customMaterials.baseMaterial}
+            material={meshMaterial}
             position={[
               nodes[key].position.x - centerPoint[0],
               nodes[key].position.y - centerPoint[1],
