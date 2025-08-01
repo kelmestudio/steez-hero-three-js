@@ -11,12 +11,12 @@ interface IngredientesSectionProps {
 
 export default function IngredientesSection({ scrollToSection, onOpenModal }: IngredientesSectionProps) {
   return (
-    <div className="container mx-auto px-6 max-w-7xl">
-      <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-16">
+    <div className="container mx-auto px-6 max-w-7xl mb-24">
+      <div className="flex flex-col lg:flex-row-reverse items-center justify-center lg:justify-between gap-8 md:gap-16 text-center lg:text-left">
         {/* Coluna de texto com os ingredientes */}
-        <div className="w-full md:w-1/2 space-y-8 z-10">
-          <div className="text-left">
-            <div className="flex items-center mb-4">
+        <div className="w-full lg:w-1/2 space-y-8 z-10 flex flex-col items-center lg:items-start">
+          <div className="text-center lg:text-left max-w-md lg:max-w-none">
+            <div className="flex items-center justify-center lg:justify-start mb-4">
               <span className="text-sm font-medium text-[#F42254] tracking-wide text">
                 INGREDIENTES
               </span>
@@ -30,7 +30,7 @@ export default function IngredientesSection({ scrollToSection, onOpenModal }: In
             </p>
           </div>
 
-          <div className="flex flex-col space-y-5">
+          <div className="flex flex-col items-center lg:items-start space-y-5 w-full">
             <div className="flex-row flex items-center gap-3 bg-white rounded-lg p-4 shadow-md w-full max-w-sm">
               <div className="bg-gray-100 rounded-full p-3 flex-shrink-0">
                 <Info className="w-5 h-5 text-gray-600" />
@@ -54,7 +54,7 @@ export default function IngredientesSection({ scrollToSection, onOpenModal }: In
         </div>
       </div>
 
-      <div className="flex bottom-8 py-4">
+      <div className="flex justify-center lg:justify-start pt-4">
         <ScrollIndicator
           onClick={() => scrollToSection("sobre")}
           section="sobre"

@@ -7,7 +7,7 @@ import {
 	useState,
 	useMemo,
 	useCallback,
-	useRef
+	useRef,
 } from "react";
 import { AnimatedCan } from "@/components/animated-can";
 import { CanConfigPanel } from "@/components/can-config-panel";
@@ -34,14 +34,140 @@ interface CanConfig {
 	visible: boolean;
 }
 
+// Estrutura para configurações responsivas - mobile e desktop
+interface DeviceConfigs {
+	mobile: { [key: string]: CanConfig };
+	desktop: { [key: string]: CanConfig };
+}
+
+// Configurações da seção ativa (usado pelo AnimatedCan)
 interface SectionConfigs {
 	[key: string]: CanConfig;
 }
 
+// Mapa de navegação entre seções - movido para fora do componente para otimização
+const NAVIGATION_MAP: { [key: string]: { up: string; down: string } } = {
+	inicio: { up: "inicio", down: "motto" },
+	motto: { up: "inicio", down: "beneficios" },
+	beneficios: { up: "motto", down: "ingredientes" },
+	ingredientes: { up: "beneficios", down: "pink" },
+	pink: { up: "ingredientes", down: "sobre" },
+	sobre: { up: "pink", down: "contato" },
+	contato: { up: "sobre", down: "faq" },
+	faq: { up: "contato", down: "footer" },
+	footer: { up: "faq", down: "footer" },
+};
+
+// Configurações padrão da lata 3D - movidas para fora do componente para evitar re-criação
+const DEFAULT_CAN_CONFIGS: DeviceConfigs = {
+	mobile: {
+		inicio: {
+			position: [0, -6.0, 10],
+			rotation: [0, Math.PI * 1, 0],
+			scale: 0.5,
+			visible: true,
+		},
+		motto: {
+			position: [2.0, -3.8, 10],
+			rotation: [Math.PI * 0.16, 0, Math.PI * 0.32],
+			scale: 0.5,
+			visible: true,
+		},
+		ingredientes: {
+			position: [2.6, -3.6, 10],
+			rotation: [Math.PI * 0.32, 0, Math.PI * 0.5],
+			scale: 0.5,
+			visible: true,
+		},
+		beneficios: {
+			position: [2.2, -3.6, 10],
+			rotation: [Math.PI * 0.32, 0, Math.PI * 0.32],
+			scale: 0.5,
+			visible: true,
+		},
+		pink: {
+			position: [-6, -4, 10],
+			rotation: [0, Math.PI * 1.75, Math.PI * 0.1],
+			scale: 0.5,
+			visible: true,
+		},
+		sobre: {
+			position: [-6, -4, 10],
+			rotation: [0, Math.PI, 0],
+			scale: 0.7,
+			visible: false,
+		},
+		contato: {
+			position: [0, 1, 10],
+			rotation: [0, Math.PI * 1.5, 0],
+			scale: 0.25,
+			visible: false,
+		},
+		faq: {
+			position: [0, 0, 0],
+			rotation: [0, 0, 0],
+			scale: 0,
+			visible: false,
+		},
+	},
+	desktop: {
+		inicio: {
+			position: [2.3, 1.6, 10],
+			rotation: [1, 0, Math.PI * 0.5],
+			scale: 0.42,
+			visible: true,
+		},
+		motto: {
+			position: [1.4, 1.2, 10],
+			rotation: [Math.PI * 1.69, 0.0, Math.PI * 0.51],
+			scale: 0.3,
+			visible: true,
+		},
+		ingredientes: {
+			position: [-6, -4, 10],
+			rotation: [Math.PI * 0.06, Math.PI * 1.75, 0],
+			scale: 0.7,
+			visible: true,
+		},
+		beneficios: {
+			position: [-6, -4, 10],
+			rotation: [0, Math.PI * 0.92, Math.PI * 0.1],
+			scale: 0.7,
+			visible: true,
+		},
+		pink: {
+			position: [-6, -4, 10],
+			rotation: [0, Math.PI * 1.75, Math.PI * 0.1],
+			scale: 0.7,
+			visible: true,
+		},
+		sobre: {
+			position: [-6, -4, 10],
+			rotation: [0, Math.PI, 0],
+			scale: 0.7,
+			visible: false,
+		},
+		contato: {
+			position: [0, 1, 10],
+			rotation: [0, Math.PI * 1.5, 0],
+			scale: 0.25,
+			visible: false,
+		},
+		faq: {
+			position: [0, 0, 0],
+			rotation: [0, 0, 0],
+			scale: 0,
+			visible: false,
+		},
+	},
+};
+
 export default function HomePage() {
 	const [scrollY, setScrollY] = useState(0);
 	const [activeSection, setActiveSection] = useState("inicio");
-	const [slideDirection, setSlideDirection] = useState<'up' | 'down' | 'none'>('none');
+	const [slideDirection, setSlideDirection] = useState<"up" | "down" | "none">(
+		"none"
+	);
 	const mainContainerRef = useRef<HTMLDivElement>(null);
 	const [quantity, setQuantity] = useState(6);
 	const [totalPrice, setTotalPrice] = useState(12);
@@ -50,12 +176,53 @@ export default function HomePage() {
 	// Estado para controlar a visibilidade do painel de configuração
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
 
+	// Hook para detectar se é desktop (lg breakpoint = 1024px)
+	// Implementa detecção responsiva otimizada com SSR support
+	const [isDesktop, setIsDesktop] = useState(() => {
+		// Verificação inicial apenas se estiver no cliente
+		if (typeof window !== 'undefined') {
+			return window.innerWidth >= 1024;
+		}
+		return false; // Default para servidor (SSR)
+	});
+
+	useEffect(() => {
+		const checkScreenSize = () => {
+			const newIsDesktop = window.innerWidth >= 1024;
+			// Só atualiza se realmente houve mudança (otimização de re-renders)
+			setIsDesktop(prev => prev !== newIsDesktop ? newIsDesktop : prev);
+		};
+
+		// Listener otimizado para mudanças de tamanho da tela
+		let timeoutId: NodeJS.Timeout;
+		const debouncedCheckScreenSize = () => {
+			clearTimeout(timeoutId);
+			timeoutId = setTimeout(checkScreenSize, 100); // Debounce de 100ms
+		};
+
+		window.addEventListener("resize", debouncedCheckScreenSize);
+
+		return () => {
+			window.removeEventListener("resize", debouncedCheckScreenSize);
+			clearTimeout(timeoutId);
+		};
+	}, []);
+
 	// Seções disponíveis no site
 	const SECTIONS = ["inicio", "beneficios", "sobre", "contato", "faq"];
 
 	// Seções na ordem exata de navegação
-	const ORDERED_SECTIONS = ["inicio", "motto", "beneficios", "ingredientes", "pink", "sobre", "contato", "faq", "footer"];
-	
+	const ORDERED_SECTIONS = [
+		"inicio",
+		"motto",
+		"beneficios",
+		"ingredientes",
+		"pink",
+		"sobre",
+		"contato",
+		"faq",
+		"footer",
+	];
 
 	// Dados para a seção de FAQ
 	const faqData = [
@@ -81,63 +248,29 @@ export default function HomePage() {
 		},
 	];
 
-	// Configurações do modelo 3D para cada seção
-	const defaultCanConfigs = useMemo<SectionConfigs>(
-		() => ({ 
-			inicio: {
-				position: [2.3, 1.4, 10],
-				rotation: [1, 0, Math.PI * 0.5],
-				scale: 0.42,
-				visible: true,
-			},
-			motto: {
-				position: [1.4, 1.2, 10],
-				rotation: [Math.PI * 1.69, 0.0, Math.PI * 0.51],
-				scale: 0.3,
-				visible: true,
-			},
-			ingredientes: {
-				position: [-6, -4, 10],
-				rotation: [ Math.PI * 0.06, Math.PI * 1.75, 0],
-				scale: 0.7,
-				visible: true,
-			},
-			beneficios: {
-				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 0.92, Math.PI* 0.10],
-				scale: 0.7,
-				visible: true,
-			},
-			pink: {
-				position: [-6, -4, 10],
-				rotation: [0, Math.PI * 1.75, Math.PI * 0.1],
-				scale: 0.7,
-				visible: true,
-			},
-			sobre: {
-				position: [-6, -4, 10],
-				rotation: [0, Math.PI, 0],
-				scale: 0.7,
-				visible: false,
-			},
-			contato: {
-				position: [0, 1, 10],
-				rotation: [0, Math.PI * 1.5, 0],
-				scale: 0.25,
-				visible: false,
-			},
-			faq: {
-				position: [0, 0, 0],
-				rotation: [0, 0, 0],
-				scale: 0,
-				visible: false,
-			},
-		}),
-		[]
-	);
+	// Configurações responsivas das latas para mobile e desktop
+	const [canConfigs, setCanConfigs] = useState<DeviceConfigs>(() => DEFAULT_CAN_CONFIGS);
 
-	const [canConfigs, setCanConfigs] =
-		useState<SectionConfigs>(defaultCanConfigs);
+	// Função estável para atualizar configurações
+	const updateCanConfigs = useCallback((newConfigs: SectionConfigs, deviceType: 'mobile' | 'desktop') => {
+		setCanConfigs(prev => ({
+			...prev,
+			[deviceType]: newConfigs
+		}));
+	}, []);
+
+	// Configurações ativas baseadas no tamanho da tela
+	// Automatically switches between mobile/desktop configs based on screen size
+	const activeCanConfigs = useMemo<SectionConfigs>(() => {
+		return isDesktop ? canConfigs.desktop : canConfigs.mobile;
+	}, [isDesktop, canConfigs]);
+
+	// Referência estável para evitar re-renders desnecessários
+	const activeCanConfigsRef = useRef<SectionConfigs>(activeCanConfigs);
+	
+	useEffect(() => {
+		activeCanConfigsRef.current = activeCanConfigs;
+	}, [activeCanConfigs]);
 
 	// Referência para controlar a direção do scroll
 	const scrollDirection = useRef({ lastY: 0, direction: 0 });
@@ -152,9 +285,9 @@ export default function HomePage() {
 
 			// Determina a direção do slide baseada na navegação
 			if (direction !== undefined) {
-				setSlideDirection(direction > 0 ? 'down' : 'up');
+				setSlideDirection(direction > 0 ? "down" : "up");
 			} else {
-				setSlideDirection('none');
+				setSlideDirection("none");
 			}
 
 			// Como removemos o scroll do browser, apenas mudamos a seção ativa
@@ -163,7 +296,7 @@ export default function HomePage() {
 
 			// Reset da direção após a transição
 			setTimeout(() => {
-				setSlideDirection('none');
+				setSlideDirection("none");
 			}, 500);
 		},
 		[activeSection]
@@ -176,38 +309,30 @@ export default function HomePage() {
 	}, [activeSection]);
 
 	// Atualização da animação 3D quando a seção muda
+	// Otimizado para evitar loops infinitos usando useRef para configurações
 	useEffect(() => {
 		if (
 			typeof window === "undefined" ||
 			activeSection === "faq" ||
-			!canConfigs[activeSection as keyof SectionConfigs]?.visible
+			!activeCanConfigsRef.current[activeSection as keyof SectionConfigs]?.visible
 		) {
 			return;
 		}
 
 		const event = new CustomEvent("sectionChanged", {
-			detail: { section: activeSection, configs: canConfigs },
+			detail: { section: activeSection, configs: activeCanConfigsRef.current },
 		});
 		window.dispatchEvent(event);
-	}, [activeSection, canConfigs]);
+	}, [activeSection]); // Removemos activeCanConfigs das dependências para evitar loops
 
 	// Mapa de navegação entre seções
-	const getNextSection = useCallback((currentSection: string, direction: number): string => {
-		const navigationMap: { [key: string]: { up: string; down: string } } = {
-			inicio: { up: "inicio", down: "motto" },
-			motto: { up: "inicio", down: "beneficios" },
-			beneficios: { up: "motto", down: "ingredientes" },
-			ingredientes: { up: "beneficios", down: "pink" },
-			pink: { up: "ingredientes", down: "sobre" },
-			sobre: { up: "pink", down: "contato" },
-			contato: { up: "sobre", down: "faq" },
-			faq: { up: "contato", down: "footer" },
-			footer: { up: "faq", down: "footer" }
-		};
-
-		const directionKey = direction < 0 ? "up" : "down";
-		return navigationMap[currentSection]?.[directionKey] || currentSection;
-	}, []);
+	const getNextSection = useCallback(
+		(currentSection: string, direction: number): string => {
+			const directionKey = direction < 0 ? "up" : "down";
+			return NAVIGATION_MAP[currentSection]?.[directionKey] || currentSection;
+		},
+		[]
+	);
 
 	// Navegação por teclado
 	useEffect(() => {
@@ -217,12 +342,12 @@ export default function HomePage() {
 			if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
 
 			e.preventDefault();
-			
+
 			// Para as setas, navegação imediata sem MIN_SCROLL_DURATION
 			const currentSection = getCurrentSection();
 			const direction = e.key === "ArrowDown" ? 1 : -1;
 			const nextSection = getNextSection(currentSection, direction);
-			
+
 			if (nextSection !== currentSection) {
 				scrollToSection(nextSection, direction);
 			}
@@ -243,7 +368,7 @@ export default function HomePage() {
 		let scrollStartTime = 0;
 		let lastScrollTime = 0;
 		let isBlocked = false; // Estado de bloqueio global
-		
+
 		const TOUCH_THRESHOLD = 50; // Aumentado para evitar triggers acidentais
 		const MIN_SCROLL_DURATION = 500; // 500ms mínimo para scroll wheel
 		const MIN_TOUCH_DURATION = 50; // 50ms mínimo para touch - mais responsivo
@@ -252,24 +377,24 @@ export default function HomePage() {
 
 		const handleNavigation = (direction: number) => {
 			const currentTime = Date.now();
-			
+
 			// Verifica se está bloqueado globalmente
 			if (isBlocked) {
 				return;
 			}
-			
+
 			// Evita múltiplas navegações muito próximas
 			if (currentTime - lastScrollTime < SCROLL_DEBOUNCE) {
 				return;
 			}
-			
+
 			const currentSection = getCurrentSection();
 			const nextSection = getNextSection(currentSection, direction);
-			
+
 			if (nextSection !== currentSection) {
 				lastScrollTime = currentTime;
 				scrollToSection(nextSection, direction);
-				
+
 				// Bloqueia todas as interações por 500ms
 				isBlocked = true;
 				setTimeout(() => {
@@ -280,20 +405,20 @@ export default function HomePage() {
 
 		const handleWheel = (e: WheelEvent) => {
 			e.preventDefault();
-			
+
 			// Se estiver bloqueado, ignora completamente
 			if (isBlocked) {
 				return;
 			}
-			
+
 			const currentTime = Date.now();
-			
+
 			// Inicia o scroll
 			if (!isScrolling) {
 				isScrolling = true;
 				scrollStartTime = currentTime;
 			}
-			
+
 			// Verifica se já passou tempo suficiente desde o início
 			const scrollDuration = currentTime - scrollStartTime;
 			if (scrollDuration >= MIN_SCROLL_DURATION) {
@@ -308,7 +433,7 @@ export default function HomePage() {
 			if (isBlocked) {
 				return;
 			}
-			
+
 			touchStartY = e.touches[0].clientY;
 			touchStartTime = Date.now();
 			isScrolling = false;
@@ -319,25 +444,25 @@ export default function HomePage() {
 			if (isBlocked || !touchStartY || !touchStartTime) {
 				return;
 			}
-			
+
 			const currentTouch = e.touches[0];
 			const currentTime = Date.now();
 			const touchDiff = touchStartY - currentTouch.clientY;
 			const touchDuration = currentTime - touchStartTime;
-			
+
 			// Verifica se o movimento é significativo
 			if (Math.abs(touchDiff) < TOUCH_THRESHOLD) return;
-			
+
 			// Verifica se o touch durou tempo suficiente (menor que scroll wheel)
 			if (touchDuration < MIN_TOUCH_DURATION) return;
-			
+
 			e.preventDefault();
-			
+
 			// Determina direção: positivo = para baixo, negativo = para cima
 			const direction = touchDiff > 0 ? 1 : -1;
-			
+
 			handleNavigation(direction);
-			
+
 			// Reset para evitar múltiplos triggers
 			touchStartY = 0;
 			touchStartTime = 0;
@@ -352,8 +477,12 @@ export default function HomePage() {
 
 		// Event listeners
 		container.addEventListener("wheel", handleWheel, { passive: false });
-		container.addEventListener("touchstart", handleTouchStart, { passive: true });
-		container.addEventListener("touchmove", handleTouchMove, { passive: false });
+		container.addEventListener("touchstart", handleTouchStart, {
+			passive: true,
+		});
+		container.addEventListener("touchmove", handleTouchMove, {
+			passive: false,
+		});
 		container.addEventListener("touchend", handleTouchEnd, { passive: true });
 
 		return () => {
@@ -365,23 +494,28 @@ export default function HomePage() {
 	}, [getCurrentSection, getNextSection, scrollToSection]);
 
 	// Função para gerar classes CSS de animação
-	const getSlideClasses = useCallback((sectionId: string) => {
-		const isActive = activeSection === sectionId;
-		const baseClasses = "absolute inset-0 h-screen w-screen transition-all duration-500 ease-in-out overflow-hidden";
-		
-		if (isActive) {
-			return `${baseClasses} opacity-100 z-10 transform translate-y-0`;
-		} else {
-			// Invertido: scroll up = animação descendo, scroll down = animação subindo
-			const translateClass = slideDirection === 'up' 
-				? 'transform translate-y-full' 
-				: slideDirection === 'down'
-				? 'transform -translate-y-full'
-				: 'transform translate-y-0';
-			
-			return `${baseClasses} opacity-0 z-0 pointer-events-none ${translateClass}`;
-		}
-	}, [activeSection, slideDirection]);
+	const getSlideClasses = useCallback(
+		(sectionId: string) => {
+			const isActive = activeSection === sectionId;
+			const baseClasses =
+				"absolute inset-0 h-screen w-screen transition-all duration-500 ease-in-out overflow-hidden";
+
+			if (isActive) {
+				return `${baseClasses} opacity-100 z-10 transform translate-y-0`;
+			} else {
+				// Invertido: scroll up = animação descendo, scroll down = animação subindo
+				const translateClass =
+					slideDirection === "up"
+						? "transform translate-y-full"
+						: slideDirection === "down"
+						? "transform -translate-y-full"
+						: "transform translate-y-0";
+
+				return `${baseClasses} opacity-0 z-0 pointer-events-none ${translateClass}`;
+			}
+		},
+		[activeSection, slideDirection]
+	);
 
 	return (
 		<div
@@ -399,18 +533,21 @@ export default function HomePage() {
 				<Settings className="w-5 h-5" />
 			</button>
 
-			{/* Painel de configuração */}
+			{/* Painel de configuração - agora responsivo */}
 			{showConfigPanel && (
 				<CanConfigPanel
-					configs={canConfigs}
-					onConfigChange={(newConfigs: any) => setCanConfigs(newConfigs)}
+					configs={activeCanConfigs}
+					onConfigChange={(newConfigs: SectionConfigs) => {
+						// Atualiza apenas as configurações do dispositivo ativo usando função estável
+						updateCanConfigs(newConfigs, isDesktop ? 'desktop' : 'mobile');
+					}}
 					activeSection={activeSection}
 				/>
 			)}
 
 			{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
 			{activeSection === "faq" ||
-			!canConfigs[activeSection as keyof SectionConfigs]?.visible ? null : (
+			!activeCanConfigs[activeSection as keyof SectionConfigs]?.visible ? null : (
 				<div className="fixed inset-0 w-screen h-screen pointer-events-none z-20 overflow-hidden">
 					<Canvas
 						camera={{ position: [0, 1, 50], fov: 16 }}
@@ -423,14 +560,14 @@ export default function HomePage() {
 							antialias: true,
 							alpha: true,
 							powerPreference: "high-performance",
-							precision: "highp" 
+							precision: "highp",
 						}}
 						dpr={[1, 2]} // Limita o DPR para melhor performance
 						performance={{ min: 0.5 }} // Permite degradação suave em dispositivos lentos
 					>
 						{/* Sistema de iluminação ultra-otimizado - menos luzes para melhor performance */}
 						<ambientLight intensity={10} />
-						
+
 						{/* Luz direcional principal unificada - combina a função das duas luzes anteriores */}
 						<directionalLight
 							position={[5, 6, 5]}
@@ -443,7 +580,7 @@ export default function HomePage() {
 							<AnimatedCan
 								scrollY={scrollY}
 								activeSection={activeSection}
-								sectionConfigs={canConfigs}
+								sectionConfigs={activeCanConfigs}
 								metalness={0.95}
 								roughness={0.15}
 								envMapIntensity={2.0}
@@ -456,7 +593,9 @@ export default function HomePage() {
 			{/* Hero Section */}
 			<div
 				id="inicio"
-				className={`${getSlideClasses("inicio")} flex items-center justify-center pt-20`}
+				className={`${getSlideClasses(
+					"inicio"
+				)} flex items-center justify-center pt-20`}
 			>
 				<HeroSection scrollToSection={scrollToSection} />
 			</div>
@@ -464,7 +603,9 @@ export default function HomePage() {
 			{/* Seção Motto (Slogan) */}
 			<div
 				id="motto"
-				className={`${getSlideClasses("motto")} flex items-center justify-center`}
+				className={`${getSlideClasses(
+					"motto"
+				)} flex items-center justify-center`}
 			>
 				<MottoSection scrollToSection={scrollToSection} />
 			</div>
@@ -472,7 +613,9 @@ export default function HomePage() {
 			{/* Seção de Benefícios */}
 			<div
 				id="beneficios"
-				className={`${getSlideClasses("beneficios")} flex items-center justify-center`}
+				className={`${getSlideClasses(
+					"beneficios"
+				)} flex items-center justify-center`}
 			>
 				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
@@ -480,7 +623,9 @@ export default function HomePage() {
 			{/* Seção de Ingredientes */}
 			<div
 				id="ingredientes"
-				className={`${getSlideClasses("ingredientes")} flex items-center justify-center`}
+				className={`${getSlideClasses(
+					"ingredientes"
+				)} flex items-center justify-center`}
 			>
 				<IngredientesSection
 					scrollToSection={scrollToSection}
@@ -491,7 +636,9 @@ export default function HomePage() {
 			{/* Seção Pink */}
 			<div
 				id="pink"
-				className={`${getSlideClasses("pink")} flex items-center justify-center`}
+				className={`${getSlideClasses(
+					"pink"
+				)} flex items-center justify-center`}
 			>
 				<PinkSection
 					scrollToSection={scrollToSection}
@@ -503,7 +650,9 @@ export default function HomePage() {
 			{/* Seção Sobre Nós */}
 			<div
 				id="sobre"
-				className={`${getSlideClasses("sobre")} flex flex-col items-center justify-center`}
+				className={`${getSlideClasses(
+					"sobre"
+				)} flex flex-col items-center justify-center`}
 			>
 				<AboutSection scrollToSection={scrollToSection} />
 			</div>
@@ -511,16 +660,15 @@ export default function HomePage() {
 			{/* Seção de Contato */}
 			<div
 				id="contato"
-				className={`${getSlideClasses("contato")} flex items-center justify-center`}
+				className={`${getSlideClasses(
+					"contato"
+				)} flex items-center justify-center`}
 			>
 				<ContatoSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção de FAQ */}
-			<div
-				id="faq"
-				className={`${getSlideClasses("faq")} flex flex-col`}
-			>
+			<div id="faq" className={`${getSlideClasses("faq")} flex flex-col`}>
 				<div className="flex-1 flex flex-col justify-center items-center py-16 px-4 sm:px-6 overflow-hidden">
 					<div className="w-full max-w-4xl mx-auto">
 						<h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
@@ -543,7 +691,9 @@ export default function HomePage() {
 			{/* Footer */}
 			<div
 				id="footer"
-				className={`${getSlideClasses("footer")} bg-[#181818] flex items-center justify-center px-4 sm:px-6`}
+				className={`${getSlideClasses(
+					"footer"
+				)} bg-[#181818] flex items-center justify-center px-4 sm:px-6`}
 			>
 				<div className="w-full max-w-6xl mx-auto text-white">
 					<Footer />

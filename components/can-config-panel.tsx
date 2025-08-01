@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { ChangeEvent } from "react";
 
-// Tipos
+// Tipos compatíveis com o arquivo principal
 type SectionConfig = {
-  position: number[];
-  rotation: number[];
+  position: [number, number, number]; // Array tipado com exatamente 3 elementos
+  rotation: [number, number, number]; // Array tipado com exatamente 3 elementos
   scale: number;
+  visible: boolean;
 };
 
 type CanConfigs = {
@@ -16,32 +17,29 @@ type CanConfigs = {
 
 interface CanConfigPanelProps {
   configs: CanConfigs;
-  onConfigChange: React.Dispatch<React.SetStateAction<CanConfigs>>;
+  onConfigChange: (newConfigs: CanConfigs) => void; // Mudança: função direta ao invés de Dispatch
   activeSection: string;
 }
 
 /**
  * Componente CanConfigPanel - Controle de configurações da lata 3D
- * Corrigido para evitar chamadas de setState durante a renderização
+ * CORRIGIDO: Removido loop infinito causado por useEffect que chamava onConfigChange
+ * nas dependências. Agora onConfigChange é chamado diretamente nos handlers.
  */
 export function CanConfigPanel({ configs, onConfigChange, activeSection }: CanConfigPanelProps) {
-  // Estado local para edições
-  const [localConfigs, setLocalConfigs] = useState<CanConfigs>(configs);
+  // Estado local para edições - inicializado com configs prop
+  const [localConfigs, setLocalConfigs] = useState<CanConfigs>(() => ({ ...configs }));
   
-  // UseEffect para controlar mudanças de configuração
+  // Sincronizar configs externos com estado local apenas quando configs prop muda
   useEffect(() => {
-    // Chamamos o callback com a configuração atual
-    onConfigChange(localConfigs);
-    
-    // Esta é a forma correta de atualizar o componente pai (HeroSection)
-    // em vez de chamar o setState diretamente durante a renderização
-  }, [localConfigs, onConfigChange]);
+    setLocalConfigs({ ...configs });
+  }, [configs]);
 
-  // Handler para atualizar configurações
+  // Handler para atualizar configurações - agora chama onConfigChange diretamente
   const handleConfigChange = useCallback((
     section: string, 
-    property: 'position' | 'rotation' | 'scale', 
-    value: number,
+    property: 'position' | 'rotation' | 'scale' | 'visible', 
+    value: number | boolean,
     index?: number
   ) => {
     setLocalConfigs(prevConfigs => {
@@ -50,25 +48,34 @@ export function CanConfigPanel({ configs, onConfigChange, activeSection }: CanCo
       if (property === 'scale') {
         newConfigs[section] = {
           ...newConfigs[section],
-          scale: value
+          scale: value as number
+        };
+      } else if (property === 'visible') {
+        newConfigs[section] = {
+          ...newConfigs[section],
+          visible: value as boolean
         };
       } else if (index !== undefined) {
         const newArray = [...newConfigs[section][property]];
-        newArray[index] = value;
+        newArray[index] = value as number;
         newConfigs[section] = {
           ...newConfigs[section],
           [property]: newArray
         };
       }
       
+      // Chamar onConfigChange imediatamente com as novas configurações
+      onConfigChange(newConfigs);
+      
       return newConfigs;
     });
-  }, []);
+  }, [onConfigChange]);
   
   // Resetar para configurações originais
   const handleReset = useCallback(() => {
-    setLocalConfigs(configs);
-    onConfigChange(configs);
+    const resetConfigs = { ...configs };
+    setLocalConfigs(resetConfigs);
+    onConfigChange(resetConfigs);
   }, [configs, onConfigChange]);
   
   // Se a seção ativa não estiver nas configurações
@@ -144,6 +151,21 @@ export function CanConfigPanel({ configs, onConfigChange, activeSection }: CanCo
             className="flex-1"
           />
           <span className="text-sm w-12">{config.scale.toFixed(2)}</span>
+        </div>
+      </div>
+      
+      {/* Visibilidade */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={config.visible}
+            onChange={(e) => handleConfigChange(
+              activeSection, 'visible', e.target.checked
+            )}
+            className="w-4 h-4"
+          />
+          <label className="text-sm font-semibold">Visível</label>
         </div>
       </div>
       

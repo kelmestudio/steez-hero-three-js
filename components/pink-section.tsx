@@ -23,7 +23,7 @@ export default function PinkSection({
   const router = useRouter();
 
   return (
-    <div className="container mx-auto px-6 max-w-7xl">
+    <div className="container mx-auto px-6 max-w-7xl mt-64 lg:mt-0">
       <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-16">
         {/* Cabeçalho do Produto */}
         <div className="w-full md:w-1/2 space-y-6 bg-white rounded-2xl shadow-xl p-8">
@@ -51,8 +51,8 @@ export default function PinkSection({
               <span className="text-lg font-bold">Total</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+            <div className="flex flex-row  justify-between items-start sm:items-center gap-3 sm:gap-0">
+              <div className="flex flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
                 {[
                   { value: 6, label: "06 latas", price: 12 },
                   { value: 12, label: "12 latas", price: 24 },
