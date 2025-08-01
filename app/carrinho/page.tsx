@@ -201,7 +201,7 @@ export default function CarrinhoPage() {
           {/* Resumo do pedido */}
           <div className="lg:col-span-4">
             <div className="bg-gray-50 p-6 rounded-lg">
-              <h2 className="text-xl font-bold mb-4">Frete estimado</h2>
+              <h2 className="text-xl font-bold mb-4">Portes de envio estimado</h2>
               
               {/* Seletor de país */}
               <div className="mb-4">
@@ -272,8 +272,8 @@ export default function CarrinhoPage() {
                 disabled={!postalCode || !isValidPostalCode(postalCode)}
                 onClick={() => {
                   if (isValidPostalCode(postalCode)) {
-                    // Simulação de cálculo de frete com base no código postal
-                    // Normalmente isto seria uma chamada a uma API de frete
+                    // Simulação de cálculo de Portes de envio com base no código postal
+                    // Normalmente isto seria uma chamada a uma API de Portes de envio
                     const firstDigit = parseInt(postalCode.charAt(0));
                     let newShippingCost = 2; // valor base
                     
@@ -286,11 +286,11 @@ export default function CarrinhoPage() {
                     
                     setShippingCost(newShippingCost);
                     setShippingCalculated(true);
-                    showNotification(`Frete calculado: ${newShippingCost}€`, 'success');
+                    showNotification(`Portes de envio calculado: ${newShippingCost}€`, 'success');
                   }
                 }}
               >
-                CALCULAR FRETE
+                CALCULAR PORTES DE ENVIO
               </button>
 
               <div className="border-t border-gray-200 pt-4 mb-4">
