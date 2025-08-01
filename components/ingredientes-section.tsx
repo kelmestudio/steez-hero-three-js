@@ -31,11 +31,11 @@ export default function IngredientesSection({ scrollToSection, onOpenModal }: In
           </div>
 
           <div className="flex flex-col space-y-5">
-            <div className="flex-row flex items-center gap-3 bg-white rounded-lg p-4 shadow-md max-w-80">
-              <div className="bg-gray-100 rounded-full p-3">
+            <div className="flex-row flex items-center gap-3 bg-white rounded-lg p-4 shadow-md w-full max-w-sm">
+              <div className="bg-gray-100 rounded-full p-3 flex-shrink-0">
                 <Info className="w-5 h-5 text-gray-600" />
               </div>
-              <p className="text-gray-700">
+              <p className="text-gray-700 text-sm sm:text-base">
                 Tamanhos disponíveis:{" "}
                 <span className="bg-gray-100 py-1 px-3 rounded-full text-sm">
                   250ml
@@ -45,7 +45,7 @@ export default function IngredientesSection({ scrollToSection, onOpenModal }: In
 
             <Button
               size="lg"
-              className="bg-[#181818] text-white hover:opacity-0.5 px-8 py-4 text-lg font-medium rounded-full w-64"
+              className="bg-[#181818] text-white hover:opacity-0.5 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-medium rounded-full w-full max-w-xs"
               onClick={onOpenModal}
             >
               VER INGREDIENTES

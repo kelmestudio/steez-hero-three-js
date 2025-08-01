@@ -245,8 +245,9 @@ export default function HomePage() {
 		let isBlocked = false; // Estado de bloqueio global
 		
 		const TOUCH_THRESHOLD = 50; // Aumentado para evitar triggers acidentais
-		const MIN_SCROLL_DURATION = 500; // 500ms mínimo
-		const SCROLL_DEBOUNCE = 400; // Debounce entre scrolls
+		const MIN_SCROLL_DURATION = 500; // 500ms mínimo para scroll wheel
+		const MIN_TOUCH_DURATION = 50; // 50ms mínimo para touch - mais responsivo
+		const SCROLL_DEBOUNCE = 500; // Debounce entre scrolls
 		const GLOBAL_BLOCK_DURATION = 500; // Bloqueio global de 500ms
 
 		const handleNavigation = (direction: number) => {
@@ -327,8 +328,8 @@ export default function HomePage() {
 			// Verifica se o movimento é significativo
 			if (Math.abs(touchDiff) < TOUCH_THRESHOLD) return;
 			
-			// Verifica se o touch durou tempo suficiente
-			if (touchDuration < MIN_SCROLL_DURATION) return;
+			// Verifica se o touch durou tempo suficiente (menor que scroll wheel)
+			if (touchDuration < MIN_TOUCH_DURATION) return;
 			
 			e.preventDefault();
 			
@@ -371,10 +372,10 @@ export default function HomePage() {
 		if (isActive) {
 			return `${baseClasses} opacity-100 z-10 transform translate-y-0`;
 		} else {
-			// Determina a direção do slide baseada na direção atual
-			const translateClass = slideDirection === 'down' 
+			// Invertido: scroll up = animação descendo, scroll down = animação subindo
+			const translateClass = slideDirection === 'up' 
 				? 'transform translate-y-full' 
-				: slideDirection === 'up'
+				: slideDirection === 'down'
 				? 'transform -translate-y-full'
 				: 'transform translate-y-0';
 			

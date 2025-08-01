@@ -69,7 +69,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 				</p>
 			</div>
 
-			<div className="max-w-[650px] mx-auto w-full">
+			<div className="w-full max-w-2xl mx-auto">
 				{submitSuccess ? (
 					<div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-6 animate-fadeIn shadow-sm">
 						<div className="flex items-center mb-2">

@@ -51,8 +51,8 @@ export default function PinkSection({
               <span className="text-lg font-bold">Total</span>
             </div>
 
-            <div className="flex justify-between items-center">
-              <div className="flex space-x-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
                 {[
                   { value: 6, label: "06 latas", price: 12 },
                   { value: 12, label: "12 latas", price: 24 },
@@ -64,8 +64,8 @@ export default function PinkSection({
                         ? "bg-pink-100 border-pink-500"
                         : "bg-gray-100"
                     } 
-                      hover:bg-gray-200 rounded-full py-2 px-6 text-center text-base font-medium 
-                      transition-colors ring-2 ring-transparent focus:outline-none focus:ring-pink-500`}
+                      hover:bg-gray-200 rounded-full py-2 px-4 sm:px-6 text-center text-sm sm:text-base font-medium 
+                      transition-colors ring-2 ring-transparent focus:outline-none focus:ring-pink-500 w-full sm:w-auto`}
                     onClick={() => {
                       setQuantity(option.value);
                       setTotalPrice(option.price);
@@ -75,7 +75,7 @@ export default function PinkSection({
                   </button>
                 ))}
               </div>
-              <span className="font-bold text-2xl italic">
+              <span className="font-bold text-xl sm:text-2xl italic self-center">
                 {totalPrice}€
               </span>
             </div>

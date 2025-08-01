@@ -24,7 +24,7 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
             <Image
               src="/images/slider-01.png"
               alt="Slider 01"
-              className="max-w-[1000px] min-w-full max-h-[60vh] object-contain z-10"
+              className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-3xl max-h-[60vh] object-contain z-10"
               width={1000}
               height={600}
             />
@@ -34,16 +34,16 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
             <Image
               src="/images/slider-02.png"
               alt="Slider 02"
-              className="max-w-[436px] min-w-full max-h-[50vh] object-contain z-10"
+              className="w-full max-w-xs sm:max-w-sm md:max-w-md max-h-[50vh] object-contain z-10"
               width={436}
               height={366}
             />
-            <div className="max-w-[324px] flex justify-between mt-3">
-              <p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
+            <div className="w-full max-w-xs sm:max-w-sm flex justify-between mt-3">
+              <p className="text-xs font-medium text-[#2E2E2E] text-nowrap">
                 [janeiro-2025]
               </p>
 
-              <p className="text-[12px] max-w-[194px] font-medium text-[#2E2E2E]">
+              <p className="text-xs max-w-[60%] font-medium text-[#2E2E2E]">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                 Quisque tempus faucibus tellus, eu aliquet augue volutpat
                 ultrices.
@@ -53,14 +53,14 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
           </CarouselItem>
           <CarouselItem className="pl-1 md:basis-auto self-end relative">
             <div className="flex items-center justify-center mb-3">
-              <p className="text-[12px] font-medium text-[#2E2E2E] text-nowrap">
+              <p className="text-xs font-medium text-[#2E2E2E] text-nowrap">
                 [2025]
               </p>
             </div>
             <Image
               src="/images/slider-03.png"
               alt="Slider 03"
-              className="max-w-[261px] min-w-full max-h-[50vh] object-contain"
+              className="w-full max-w-xs sm:max-w-sm max-h-[50vh] object-contain"
               width={261}
               height={356}
             />
@@ -70,7 +70,7 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
             <Image
               src="/images/slider-04.png"
               alt="Slider 04"
-              className="max-w-[338px] min-w-full max-h-[50vh] object-contain"
+              className="w-full max-w-xs sm:max-w-sm md:max-w-md max-h-[50vh] object-contain"
               width={338}
               height={597}
             />
