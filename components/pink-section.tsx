@@ -39,8 +39,7 @@ export default function PinkSection({
               </span>
             </div>
             <p className="text-base text-gray-600 mb-8">
-              Ideal para quem procura uma opção mais leve, sem abdicar do
-              sabor nem do estilo.
+              Não abdiques do sabor nem do estilo.
             </p>
           </div>
 
@@ -51,8 +50,8 @@ export default function PinkSection({
               <span className="text-lg font-bold">Total</span>
             </div>
 
-            <div className="flex flex-row  justify-between items-start sm:items-center gap-3 sm:gap-0">
-              <div className="flex flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+            <div className="flex flex-row justify-between items-center gap-3">
+              <div className="flex flex-row gap-2 w-full sm:w-auto">
                 {[
                   { value: 6, label: "06 latas", price: 12 },
                   { value: 12, label: "12 latas", price: 24 },
@@ -61,11 +60,11 @@ export default function PinkSection({
                     key={option.value}
                     className={`${
                       quantity === option.value
-                        ? "bg-pink-100 border-pink-500"
-                        : "bg-gray-100"
+                        ? "bg-pink-100 border border-pink-500 text-[#F42254]"
+                        : "bg-gray-100 border border-gray-200 text-gray-700"
                     } 
-                      hover:bg-gray-200 rounded-full py-2 px-4 sm:px-6 text-center text-sm sm:text-base font-medium 
-                      transition-colors focus:outline-none w-full sm:w-auto`}
+                      hover:bg-gray-200 rounded-full py-2 px-4 sm:px-6 h-10 text-center text-sm sm:text-base font-medium 
+                      transition-colors focus:outline-none focus:ring-0 flex-1 sm:flex-none min-w-0`}
                     onClick={() => {
                       setQuantity(option.value);
                       setTotalPrice(option.price);
@@ -75,7 +74,7 @@ export default function PinkSection({
                   </button>
                 ))}
               </div>
-              <span className="font-bold text-xl sm:text-2xl italic self-center">
+              <span className="font-bold text-xl sm:text-2xl italic flex-shrink-0">
                 {totalPrice}€
               </span>
             </div>

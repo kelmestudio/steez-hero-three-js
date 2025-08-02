@@ -70,6 +70,30 @@ export default function CarrinhoPage() {
     }
     
     setPostalCode(value);
+    
+    // Calcula automaticamente os portes de envio se o código postal for válido
+    if (isValidPostalCode(value)) {
+      const firstDigit = parseInt(value.charAt(0));
+      let newShippingCost = 2; // valor base
+
+      // Simula diferentes custos baseados no primeiro dígito do CP
+      if (firstDigit > 5) {
+        newShippingCost = 3; // Sul e ilhas: mais caro
+      } else if (firstDigit < 2) {
+        newShippingCost = 1.5; // Lisboa e arredores: mais barato
+      }
+
+      setShippingCost(newShippingCost);
+      setShippingCalculated(true);
+      showNotification(
+        `Portes de envio calculado: ${newShippingCost}€`,
+        "success"
+      );
+    } else {
+      // Reset se o código postal não for válido
+      setShippingCalculated(false);
+      setShippingCost(2);
+    }
   };
   
   // Função para validar o código postal completo
@@ -80,7 +104,7 @@ export default function CarrinhoPage() {
   };
 
   return (
-		<div className="min-h-screen bg-white pb-10 px-4 sm:px-6">
+		<div className="min-h-screen pb-10 px-4 sm:px-6">
 			{/* Header com navegação */}
 			<Header activeSection="" scrollToSection={scrollToSection} />
 
@@ -258,7 +282,7 @@ export default function CarrinhoPage() {
 								)}
 							</div>
 
-							<div className="text-sm mb-2">
+							<div className="text-sm mb-6">
 								{shippingCalculated ? (
 									<div className="flex justify-between items-center">
 										<span className="text-gray-700">
@@ -275,39 +299,6 @@ export default function CarrinhoPage() {
 									</span>
 								)}
 							</div>
-
-							<button
-								className={`w-full py-2 rounded-md mb-6 ${
-									!postalCode || !isValidPostalCode(postalCode)
-										? "bg-gray-200 text-gray-400 cursor-not-allowed"
-										: "bg-gray-200 hover:bg-gray-300 text-gray-800"
-								}`}
-								disabled={!postalCode || !isValidPostalCode(postalCode)}
-								onClick={() => {
-									if (isValidPostalCode(postalCode)) {
-										// Simulação de cálculo de Portes de envio com base no código postal
-										// Normalmente isto seria uma chamada a uma API de Portes de envio
-										const firstDigit = parseInt(postalCode.charAt(0));
-										let newShippingCost = 2; // valor base
-
-										// Simula diferentes custos baseados no primeiro dígito do CP
-										if (firstDigit > 5) {
-											newShippingCost = 3; // Sul e ilhas: mais caro
-										} else if (firstDigit < 2) {
-											newShippingCost = 1.5; // Lisboa e arredores: mais barato
-										}
-
-										setShippingCost(newShippingCost);
-										setShippingCalculated(true);
-										showNotification(
-											`Portes de envio calculado: ${newShippingCost}€`,
-											"success"
-										);
-									}
-								}}
-							>
-								CALCULAR PORTES DE ENVIO
-							</button>
 
 							<div className="border-t border-gray-200 pt-4 mb-4">
 								<div className="flex justify-between mb-2">
@@ -329,7 +320,7 @@ export default function CarrinhoPage() {
 							</div>
 
 							<Button
-								className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-md"
+								className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-full"
 								disabled={items.length === 0}
 								onClick={() => {
 									if (items.length > 0) {

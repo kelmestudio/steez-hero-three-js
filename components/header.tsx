@@ -5,33 +5,12 @@ import Steez from "@/components/svg/steez";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useState } from "react";
+import Navbar from "@/components/navbar";
 
 interface HeaderProps {
   activeSection: string;
   scrollToSection: (id: string) => void;
 }
-
-interface NavItemProps {
-  section: string;
-  label: string;
-  activeSection: string;
-  onClick: () => void;
-}
-
-// Componente de item de navegação para garantir consistência
-const NavItem = ({ section, label, activeSection, onClick }: NavItemProps) => (
-  <button
-    onClick={onClick}
-    className={`text-sm font-medium transition-colors border-b-2 py-1 px-1 ${
-      activeSection === section
-        ? "text-black border-red-500"
-        : "text-gray-600 border-transparent hover:text-[#F42254]"
-    }`}
-    aria-current={activeSection === section ? "page" : undefined}
-  >
-    {label}
-  </button>
-);
 
 export default function Header({ activeSection, scrollToSection }: HeaderProps) {
   const { itemCount } = useCart();
@@ -61,44 +40,39 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
         </div>
         
         {/* Navegação desktop */}
-        <nav className="hidden md:flex items-center space-x-6">
-          {navigationItems.map((item) => (
-            <NavItem
-              key={item.section}
-              section={item.section}
-              label={item.label}
-              activeSection={activeSection}
-              onClick={() => scrollToSection(item.section)}
-            />
-          ))}
-        </nav>
+        <div className="hidden md:flex items-center">
+          <Navbar tab={activeSection} scrollToSection={scrollToSection} />
+        </div>
 
-        {/* Botão do carrinho */}
-        <Link 
-          href="/carrinho" 
-          className="flex items-center space-x-2 group hover:text-[#F42254] transition-colors"
-          aria-label={`Ver carrinho com ${itemCount} itens`}
-        >
-          <span className="text-md font-medium text">CARRINHO</span>
-          <div className="relative">
-            <ShoppingCart className="w-6 h-6 group-hover:text-[#F42254] transition-colors" />
-            {itemCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {itemCount}
-              </span>
-            )}
-          </div>
-        </Link>
+        {/* Grupo: Carrinho e Menu Mobile */}
+        <div className="flex items-center gap-6">
+          {/* Botão do carrinho */}
+          <Link 
+            href="/carrinho" 
+            className="flex items-center space-x-2 group hover:text-[#F42254] transition-colors"
+            aria-label={`Ver carrinho com ${itemCount} itens`}
+          >
+            <span className="text-md font-medium text">CARRINHO</span>
+            <div className="relative">
+              <ShoppingCart className="w-6 h-6 group-hover:text-[#F42254] transition-colors" />
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
+            </div>
+          </Link>
 
-        {/* Botão do menu mobile */}
-        <button
-          className="md:hidden flex items-center"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-expanded={isMobileMenuOpen}
-          aria-label="Menu de navegação"
-        >
-          {isMobileMenuOpen ? <X /> : <Menu />}
-        </button>
+          {/* Botão do menu mobile */}
+          <button
+            className="md:hidden flex items-center"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Menu de navegação"
+          >
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
 
       {/* Menu mobile */}

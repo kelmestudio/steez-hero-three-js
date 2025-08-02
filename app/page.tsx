@@ -177,6 +177,35 @@ export default function HomePage() {
 	// Estado para controlar a visibilidade do painel de configuração
 	const [showConfigPanel, setShowConfigPanel] = useState(false);
 
+	// Hook para ler âncora da URL na inicialização
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const hash = window.location.hash.replace('#', '');
+			const validSections = ['inicio', 'beneficios', 'ingredientes', 'pink', 'sobre', 'contato', 'faq'];
+			if (hash && validSections.includes(hash)) {
+				setActiveSection(hash);
+			}
+		}
+	}, []);
+
+	// Hook para escutar mudanças na URL (botão voltar/avançar do navegador)
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const handlePopState = () => {
+				const hash = window.location.hash.replace('#', '');
+				const validSections = ['inicio', 'beneficios', 'ingredientes', 'pink', 'sobre', 'contato', 'faq'];
+				if (hash && validSections.includes(hash)) {
+					setActiveSection(hash);
+				} else if (!hash) {
+					setActiveSection('inicio');
+				}
+			};
+
+			window.addEventListener('popstate', handlePopState);
+			return () => window.removeEventListener('popstate', handlePopState);
+		}
+	}, []);
+
 	// Hook para detectar se é desktop (lg breakpoint = 1024px)
 	// Implementa detecção responsiva otimizada com SSR support
 	const [isDesktop, setIsDesktop] = useState(() => {
