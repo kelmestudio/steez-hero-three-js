@@ -9,7 +9,7 @@ interface BeneficiosSectionProps {
 
 export default function BeneficiosSection({ scrollToSection }: BeneficiosSectionProps) {
   return (
-    <div className="container mx-auto px-6 max-w-7xl mb-32 lg:mb-0">
+    <div className="container mx-auto px-6 max-w-7xl">
       <div className="flex flex-col lg:flex-row-reverse items-center justify-center lg:justify-between gap-4 md:gap-16">
         {/* Coluna de texto com os benefícios */}
         <div className="w-full lg:w-1/2 space-y-8 z-10 flex flex-col items-center lg:items-start">

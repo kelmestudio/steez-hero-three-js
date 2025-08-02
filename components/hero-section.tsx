@@ -15,16 +15,16 @@ export default function HeroSection({ scrollToSection }: HeroSectionProps) {
 					<p className="text-lg font-medium text-gray-700 tracking-wide">
 						ÁLCOOL SEM CULPA
 					</p>
-					<div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-black text-[#F42254] leading-none select-none">
+					<div className="text-[6rem] md:text-[12rem] lg:text-[16rem] font-black text-[#F42254] leading-none select-none">
 						<span className="inline-block title-home px-10">PINK</span>
 					</div>
 				</div>
 
 				{/* Call to Action Buttons */}
-				<div className="flex flex-row items-center justify-center gap-4 ,mb-8 lg:mb-12">
+				<div className="flex flex-col lg:flex-row items-center justify-center gap-2 lg:gap-4 mb-2 lg:mb-12">
 					<Button
 						size="lg"
-						className="bg-black text-white hover:bg-gray-800 px-4 md:px-8 py-2 md:py-4 text-lg font-medium rounded-full"
+						className="bg-black text-white hover:bg-gray-800 px-4 md:px-8 py-2 md:py-4 text-lg font-medium rounded-full w-full"
 						onClick={() => scrollToSection("pink")}
 					>
 						COMPRAR AGORA
@@ -32,7 +32,7 @@ export default function HeroSection({ scrollToSection }: HeroSectionProps) {
 					<Button
 						variant="outline"
 						size="lg"
-						className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-4 md:px-8  py-2 md:py-4 text-lg font-medium rounded-full bg-transparent"
+						className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-4 md:px-8  py-2 md:py-4 text-lg font-medium rounded-full bg-transparent w-full"
 						onClick={() => scrollToSection("ingredientes")}
 					>
 						VER INGREDIENTES

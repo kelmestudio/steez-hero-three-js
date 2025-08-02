@@ -73,22 +73,22 @@ const DEFAULT_CAN_CONFIGS: DeviceConfigs = {
 			scale: 0.5,
 			visible: true,
 		},
-		ingredientes: {
-			position: [2.6, -3.6, 10],
-			rotation: [Math.PI * 0.32, 0, Math.PI * 0.5],
-			scale: 0.5,
-			visible: true,
-		},
 		beneficios: {
 			position: [2.2, -3.6, 10],
 			rotation: [Math.PI * 0.32, 0, Math.PI * 0.32],
 			scale: 0.5,
 			visible: true,
 		},
+		ingredientes: {
+			position: [-1.8, -5.8, 10],
+			rotation: [0, Math.PI * 1, Math.PI * 0.32],
+			scale: 0.38,
+			visible: true,
+		},
 		pink: {
-			position: [-6, -4, 10],
-			rotation: [0, Math.PI * 1.75, Math.PI * 0.1],
-			scale: 0.5,
+			position: [2, 1.6, 10],
+			rotation: [Math.PI * 1.08, 0, Math.PI * 0.7],
+			scale: 0.38,
 			visible: true,
 		},
 		sobre: {
@@ -118,20 +118,20 @@ const DEFAULT_CAN_CONFIGS: DeviceConfigs = {
 			visible: true,
 		},
 		motto: {
-			position: [1.4, 1.2, 10],
-			rotation: [Math.PI * 1.69, 0.0, Math.PI * 0.51],
-			scale: 0.3,
-			visible: true,
-		},
-		ingredientes: {
-			position: [-6, -4, 10],
-			rotation: [Math.PI * 0.06, Math.PI * 1.75, 0],
-			scale: 0.7,
+			position: [2.0, 1.6, 10.0],
+			rotation: [Math.PI * 1.62, 0.06, Math.PI * 0.48],
+			scale: 0.35,
 			visible: true,
 		},
 		beneficios: {
 			position: [-6, -4, 10],
 			rotation: [0, Math.PI * 0.92, Math.PI * 0.1],
+			scale: 0.7,
+			visible: true,
+		},
+		ingredientes: {
+			position: [-6, -4, 10],
+			rotation: [Math.PI * 0.06, Math.PI * 1.75, 0],
 			scale: 0.7,
 			visible: true,
 		},
@@ -539,7 +539,7 @@ export default function HomePage() {
 					configs={activeCanConfigs}
 					onConfigChange={(newConfigs: SectionConfigs) => {
 						// Atualiza apenas as configurações do dispositivo ativo usando função estável
-						updateCanConfigs(newConfigs, isDesktop ? 'desktop' : 'mobile');
+						updateCanConfigs(newConfigs, isDesktop ? "desktop" : "mobile");
 					}}
 					activeSection={activeSection}
 				/>
@@ -547,7 +547,8 @@ export default function HomePage() {
 
 			{/* Canvas 3D - Renderizado apenas quando a seção atual tem visible: true */}
 			{activeSection === "faq" ||
-			!activeCanConfigs[activeSection as keyof SectionConfigs]?.visible ? null : (
+			!activeCanConfigs[activeSection as keyof SectionConfigs]
+				?.visible ? null : (
 				<div className="fixed inset-0 w-screen h-screen pointer-events-none z-20 overflow-hidden">
 					<Canvas
 						camera={{ position: [0, 1, 50], fov: 16 }}
@@ -605,7 +606,7 @@ export default function HomePage() {
 				id="motto"
 				className={`${getSlideClasses(
 					"motto"
-				)} flex items-center justify-center`}
+				)} flex items-center justify-center lg:pt-32 pb-64 lg:pb-0`}
 			>
 				<MottoSection scrollToSection={scrollToSection} />
 			</div>
@@ -615,7 +616,7 @@ export default function HomePage() {
 				id="beneficios"
 				className={`${getSlideClasses(
 					"beneficios"
-				)} flex items-center justify-center`}
+				)} flex items-center justify-center pt-0 lg:pt-32 pb-48 lg:pb-0 `}
 			>
 				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
@@ -625,7 +626,7 @@ export default function HomePage() {
 				id="ingredientes"
 				className={`${getSlideClasses(
 					"ingredientes"
-				)} flex items-center justify-center`}
+				)} flex items-center justify-center pt-0 lg:pt-48 pb-0 lg:pb-0`}
 			>
 				<IngredientesSection
 					scrollToSection={scrollToSection}

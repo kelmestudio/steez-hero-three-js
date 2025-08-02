@@ -8,8 +8,7 @@ const SloganSteez: React.FC<SloganProps> = ({ className }) => {
 	return (
 		<div className={className} role="img" aria-label="than your ex's kiss">
 			<svg
-				width="450"
-				height="100"
+				width="250"
 				viewBox="0 0 661 146"
 				fill="none"
 				xmlns="http://www.w3.org/2000/svg"
