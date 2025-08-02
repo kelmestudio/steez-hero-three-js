@@ -24,7 +24,7 @@ export default function HeroSection({ scrollToSection }: HeroSectionProps) {
 				<div className="flex flex-col lg:flex-row items-center justify-center gap-2 lg:gap-4 mb-2 lg:mb-12">
 					<Button
 						size="lg"
-						className="bg-black text-white hover:bg-gray-800 px-4 md:px-8 py-2 md:py-4 text-lg font-medium rounded-full w-full"
+						className="bg-black text-white hover:bg-gray-800 px-4 md:px-8 py-2 md:py-4 text-lg font-medium rounded-full w-full md:w-64"
 						onClick={() => scrollToSection("pink")}
 					>
 						COMPRAR AGORA
@@ -32,7 +32,7 @@ export default function HeroSection({ scrollToSection }: HeroSectionProps) {
 					<Button
 						variant="outline"
 						size="lg"
-						className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-4 md:px-8  py-2 md:py-4 text-lg font-medium rounded-full bg-transparent w-full"
+						className="border-2 border-gray-400 text-gray-700 hover:bg-gray-50 px-4 md:px-8  py-2 md:py-4 text-lg font-medium rounded-full bg-transparent w-full md:w-64"
 						onClick={() => scrollToSection("ingredientes")}
 					>
 						VER INGREDIENTES

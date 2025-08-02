@@ -68,19 +68,19 @@ const DEFAULT_CAN_CONFIGS: DeviceConfigs = {
 			visible: true,
 		},
 		motto: {
-			position: [2.0, -3.8, 10],
+			position: [1.4, -2.5, 10],
 			rotation: [Math.PI * 0.16, 0, Math.PI * 0.32],
-			scale: 0.5,
+			scale: 0.35,
 			visible: true,
 		},
 		beneficios: {
-			position: [2.2, -3.6, 10],
+			position: [1.5, -3, 10],
 			rotation: [Math.PI * 0.32, 0, Math.PI * 0.32],
-			scale: 0.5,
+			scale: 0.35,
 			visible: true,
 		},
 		ingredientes: {
-			position: [-1.8, -5.8, 10],
+			position: [-1.8, -5.2, 10],
 			rotation: [0, Math.PI * 1, Math.PI * 0.32],
 			scale: 0.38,
 			visible: true,
@@ -616,7 +616,7 @@ export default function HomePage() {
 				id="beneficios"
 				className={`${getSlideClasses(
 					"beneficios"
-				)} flex items-center justify-center pt-0 lg:pt-32 pb-48 lg:pb-0 `}
+				)} flex items-center justify-center pt-0 lg:pt-20 pb-64 lg:pb-0 `}
 			>
 				<BeneficiosSection scrollToSection={scrollToSection} />
 			</div>
@@ -626,7 +626,7 @@ export default function HomePage() {
 				id="ingredientes"
 				className={`${getSlideClasses(
 					"ingredientes"
-				)} flex items-center justify-center pt-0 lg:pt-48 pb-0 lg:pb-0`}
+				)} flex items-center justify-center pt-0 lg:pt-36 pb-0 lg:pb-0`}
 			>
 				<IngredientesSection
 					scrollToSection={scrollToSection}
@@ -639,7 +639,7 @@ export default function HomePage() {
 				id="pink"
 				className={`${getSlideClasses(
 					"pink"
-				)} flex items-center justify-center`}
+				)} flex items-center justify-end pt-64 lg:pt-0 pb-0 lg:pb-0`}
 			>
 				<PinkSection
 					scrollToSection={scrollToSection}
@@ -663,7 +663,7 @@ export default function HomePage() {
 				id="contato"
 				className={`${getSlideClasses(
 					"contato"
-				)} flex items-center justify-center`}
+				)} flex items-center justify-center pt-16`}
 			>
 				<ContatoSection scrollToSection={scrollToSection} />
 			</div>
@@ -672,19 +672,12 @@ export default function HomePage() {
 			<div id="faq" className={`${getSlideClasses("faq")} flex flex-col`}>
 				<div className="flex-1 flex flex-col justify-center items-center py-16 px-4 sm:px-6 overflow-hidden">
 					<div className="w-full max-w-4xl mx-auto">
-						<h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
+						<h2 className="text-3xl md:text-4xl font-semibold text-center uppercase italic mb-8 text-[#181818]">
 							Perguntas Frequentes
 						</h2>
 						<div className="overflow-y-auto hide-scrollbar pr-2 max-h-[calc(100vh-260px)]">
 							<FAQSection faq={faqData} />
 						</div>
-
-						{/* Scroll Indicator para Footer */}
-						<ScrollIndicator
-							onClick={() => scrollToSection("footer")}
-							section="footer"
-							size="small"
-						/>
 					</div>
 				</div>
 			</div>

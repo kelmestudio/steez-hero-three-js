@@ -54,12 +54,7 @@ export default function IngredientesSection({ scrollToSection, onOpenModal }: In
         </div>
       </div>
 
-      <div className="flex justify-center lg:justify-start pt-4">
-        <ScrollIndicator
-          onClick={() => scrollToSection("sobre")}
-          section="sobre"
-        />
-      </div>
+      
     </div>
   );
 }

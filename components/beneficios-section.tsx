@@ -59,12 +59,6 @@ export default function BeneficiosSection({ scrollToSection }: BeneficiosSection
           </div>
         </div>
       </div>
-      <div className="flex justify-center lg:justify-start pt-10">
-        <ScrollIndicator
-          onClick={() => scrollToSection("ingredientes")}
-          section="ingredientes"
-        />
-      </div>
     </div>
   );
 }

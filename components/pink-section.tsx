@@ -23,10 +23,10 @@ export default function PinkSection({
   const router = useRouter();
 
   return (
-    <div className="container mx-auto px-6 max-w-7xl mt-64 lg:mt-0">
+    <div className="container mx-auto px-6 max-w-7xl">
       <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-16">
         {/* Cabeçalho do Produto */}
-        <div className="w-full md:w-1/2 space-y-6 bg-white rounded-2xl shadow-xl p-8">
+        <div className="w-full lg:w-1/2 space-y-6 bg-white rounded-2xl shadow-xl p-8">
           <div className="text-left">
             <h3 className="text-4xl font-bold text-[#F42254] mb-2">PINK</h3>
             <div className="flex items-center mb-3">
@@ -65,7 +65,7 @@ export default function PinkSection({
                         : "bg-gray-100"
                     } 
                       hover:bg-gray-200 rounded-full py-2 px-4 sm:px-6 text-center text-sm sm:text-base font-medium 
-                      transition-colors ring-2 ring-transparent focus:outline-none focus:ring-pink-500 w-full sm:w-auto`}
+                      transition-colors focus:outline-none w-full sm:w-auto`}
                     onClick={() => {
                       setQuantity(option.value);
                       setTotalPrice(option.price);
@@ -101,12 +101,6 @@ export default function PinkSection({
             </Button>
           </div>
         </div>
-      </div>
-      <div className="flex bottom-8 py-4">
-        <ScrollIndicator
-          onClick={() => scrollToSection("sobre")}
-          section="sobre"
-        />
       </div>
     </div>
   );

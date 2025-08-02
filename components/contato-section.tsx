@@ -59,12 +59,12 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
   };
 
   return (
-		<div className="container mx-auto px-4 sm:px-6 py-8 max-h-screen flex flex-col justify-center">
-			<div className="text-center mb-6">
-				<h2 className="text-3xl md:text-4xl font-semibold text-center uppercase italic text-[#181818]">
+		<div className="container mx-auto px-4 sm:px-6 max-h-screen flex flex-col justify-center">
+			<div className="text-center mb-4">
+				<h2 className="text-3xl md:text-4xl font-semibold text-center uppercase italic mb-4 text-[#181818]">
 					Fala Connosco
 				</h2>
-				<p className="text-gray-600 mt-2 max-w-lg mx-auto">
+				<p className="text-gray-600 max-w-lg mx-auto">
 					Tens uma dúvida ou sugestão? Estamos aqui para ajudar.
 				</p>
 			</div>
@@ -87,9 +87,9 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 				) : (
 					<form
 						onSubmit={handleSubmit}
-						className="flex flex-col gap-3 bg-white rounded-xl p-4 md:p-6 shadow-sm"
+						className="flex flex-col gap-3 bg-white border rounded-xl shadow-sm overflow-hidden p-4 md:p-6 items-center"
 					>
-						<div className="flex flex-col md:flex-row gap-3">
+						<div className="flex flex-col w-full md:flex-row gap-3">
 							<div className="flex-1">
 								<label
 									htmlFor="name"
@@ -128,7 +128,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 							</div>
 						</div>
 
-						<div>
+						<div className="w-full">
 							<label
 								htmlFor="message"
 								className="block text-sm text-gray-700 mb-1 font-medium"
@@ -154,7 +154,7 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 						<button
 							type="submit"
 							disabled={isSubmitting}
-							className={`flex items-center justify-center bg-black text-white hover:bg-gray-800 px-6 py-3 text-base font-medium rounded-full transition-all mt-2 ${
+							className={`flex items-center justify-center bg-black text-white hover:bg-gray-800 w-full px-6 py-3 text-base font-medium rounded-full transition-all mt-2 ${
 								isSubmitting ? "opacity-70 cursor-not-allowed" : ""
 							}`}
 						>
@@ -184,33 +184,27 @@ export default function ContatoSection({ scrollToSection }: ContatoSectionProps)
 								</>
 							) : (
 								<>
-									Enviar mensagem
+									ENVIAR MENSAGEM
 									<Send className="ml-2 h-4 w-4" />
 								</>
 							)}
 						</button>
-
-						<p className="text-gray-500 text-center text-sm mt-3">
-							As tuas informações serão processadas de acordo com os<br></br> nossos
-							<a href="/termos" className="text-[#F42254] hover:underline ml-1">
-								termos de serviço
-							</a>{" "}
-							e
-							<a
-								href="/privacidade"
-								className="text-[#F42254] hover:underline ml-1"
-							>
-								política de privacidade
-							</a>
-							.
-						</p>
 					</form>
 				)}
-			</div>
-
-			{/* Scroll Indicator */}
-			<div className="mt-auto pt-4">
-				<ScrollIndicator onClick={() => scrollToSection("faq")} section="faq" />
+				<p className="text-gray-500 text-center mx-auto text-sm mt-3 max-w-md">
+					As tuas informações serão processadas de acordo com os nossos
+					<a href="/termos" className="text-[#F42254] hover:underline ml-1">
+						termos de serviço
+					</a>{" "}
+					e
+					<a
+						href="/privacidade"
+						className="text-[#F42254] hover:underline ml-1"
+					>
+						política de privacidade
+					</a>
+					.
+				</p>
 			</div>
 		</div>
 	);
