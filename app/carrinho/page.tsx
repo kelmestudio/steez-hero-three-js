@@ -56,7 +56,7 @@ export default function CarrinhoPage() {
     // Remove caracteres não numéricos e hífens
     value = value.replace(/[^\d-]/g, '');
     
-    // Formato ####-###
+    // Formato 0000-000
     if (value.length > 0) {
       // Insere o hífen automaticamente após 4 dígitos
       if (value.length > 4 && !value.includes('-')) {
@@ -85,15 +85,8 @@ export default function CarrinhoPage() {
 			<Header activeSection="" scrollToSection={scrollToSection} />
 
 			<div className="max-w-6xl mx-auto pt-20">
-				<Link
-					href="/"
-					className="flex items-center text-gray-600 hover:text-black mb-8"
-				>
-					<ArrowLeft className="w-5 h-5 mr-2" />
-					<span>Voltar</span>
-				</Link>
 
-				<h1 className="text-3xl font-bold mb-10 text-center">CARRINHO</h1>
+				<h2 className="text-3xl md:text-4xl font-semibold text-center uppercase italic mb-4 text-[#181818] mt-8">CARRINHO</h2>
 
 				<div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
 					{/* Produtos no carrinho - coluna principal */}
@@ -156,10 +149,7 @@ export default function CarrinhoPage() {
 
 											<div className="flex flex-col gap-1">
 												<p className="font-bold text-sm sm:text-base">
-													{item.packSize === 6 ? 12 : 24}€ pelo pacote
-												</p>
-												<p className="text-xs sm:text-sm text-gray-600">
-													Total: {item.price}€
+													{item.price}€ pelo pacote
 												</p>
 											</div>
 										</div>
@@ -230,7 +220,7 @@ export default function CarrinhoPage() {
 									htmlFor="postalCode"
 									className="block text-sm text-gray-600 mb-1"
 								>
-									Código postal (####-###)
+									Código postal
 								</label>
 								<div className="relative">
 									<input
@@ -263,7 +253,7 @@ export default function CarrinhoPage() {
 								{postalCode && !isValidPostalCode(postalCode) && (
 									<p className="text-red-500 text-xs mt-1">
 										Por favor, insira um código postal válido no formato
-										####-###
+										0000-000
 									</p>
 								)}
 							</div>
@@ -330,23 +320,7 @@ export default function CarrinhoPage() {
 									<span className="font-medium">{shippingCost}€</span>
 								</div>
 
-								{/* Resumo dos itens */}
-								<div className="mt-4 mb-4 pt-2 border-t border-gray-100">
-									<h3 className="text-sm font-medium mb-2">
-										Detalhes do pedido:
-									</h3>
-									{items.map((item) => (
-										<div
-											key={`summary-${item.id}`}
-											className="flex justify-between text-sm mb-1"
-										>
-											<span>
-												{item.quantity}x Pacote {item.packSize} latas
-											</span>
-											<span>{item.price}€</span>
-										</div>
-									))}
-								</div>
+						
 
 								<div className="flex justify-between font-bold text-lg mt-4 pt-2 border-t border-gray-200">
 									<span>Total:</span>

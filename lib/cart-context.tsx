@@ -155,14 +155,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!id || ![6, 12].includes(packSize) || newPrice <= 0) return;
     
     setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === id ? { 
-          ...item, 
-          packSize, 
-          price: newPrice * item.quantity, // Atualiza o preço baseado na quantidade atual
-          id: item.id.replace(/\d+$/, packSize.toString()) // Atualiza o ID para refletir o novo tamanho do pacote
-        } : item
-      )
+      prevItems.map(item => {
+        if (item.id === id) {
+          // Gera um novo ID único mantendo o timestamp original se existir
+          const timestampMatch = item.id.match(/-(\d+)$/);
+          const timestamp = timestampMatch ? timestampMatch[1] : Date.now();
+          const newId = `steez-pink-${packSize}-${timestamp}`;
+          
+          return { 
+            ...item, 
+            packSize, 
+            price: newPrice * item.quantity,
+            id: newId
+          };
+        }
+        return item;
+      })
     );
   }, []);
 
@@ -170,7 +178,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   
   // Calcular o valor total do carrinho
-  const total = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+  // Nota: item.price já contém o preço total para a quantidade do item
+  const total = items.reduce((total, item) => total + item.price, 0);
 
   const value = {
     items,

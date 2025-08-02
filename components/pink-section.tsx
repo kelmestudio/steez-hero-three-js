@@ -86,7 +86,7 @@ export default function PinkSection({
               onClick={() => {
                 // Adicionar o item ao carrinho
                 const newItem = {
-                  id: "steez-pink-" + quantity,
+                  id: `steez-pink-${quantity}-${Date.now()}`, // ID único usando timestamp
                   name: "STEEZ PINK",
                   price: totalPrice,
                   image: "/images/steez-pink-can.png",
