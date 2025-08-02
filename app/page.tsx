@@ -25,6 +25,7 @@ import PinkSection from "@/components/pink-section";
 import AboutSection from "@/components/about-section";
 import ContatoSection from "@/components/contato-section";
 import IngredientesModal from "@/components/ingredientes-modal";
+import HomeLayout from "./layout.client";
 
 // Tipagem para melhorar segurança e autocompletar
 interface CanConfig {
@@ -518,10 +519,11 @@ export default function HomePage() {
 	);
 
 	return (
-		<div
-			ref={mainContainerRef}
-			className="h-screen w-screen overflow-hidden fixed inset-0"
-		>
+		<HomeLayout>
+			<div
+				ref={mainContainerRef}
+				className="h-full w-full"
+			>
 			{/* Header com navegação */}
 			<Header activeSection={activeSection} scrollToSection={scrollToSection} />
 
@@ -663,7 +665,7 @@ export default function HomePage() {
 				id="contato"
 				className={`${getSlideClasses(
 					"contato"
-				)} flex items-center justify-center pt-16`}
+				)} flex items-center justify-center pt-6 lg:pt-8`}
 			>
 				<ContatoSection scrollToSection={scrollToSection} />
 			</div>
@@ -700,5 +702,6 @@ export default function HomePage() {
 				onClose={() => setShowIngredientesModal(false)}
 			/>
 		</div>
+		</HomeLayout>
 	);
 }

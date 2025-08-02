@@ -31,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="h-full w-full">
-      <body className="h-screen w-screen overflow-hidden fixed inset-0">
+    <html lang="pt-BR">
+      <body>
         <AgeVerificationProvider>
           <NotificationProvider>
             <CartProvider>
