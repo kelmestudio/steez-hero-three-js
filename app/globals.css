@@ -81,6 +81,45 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Prevenção do pull-to-refresh no mobile */
+@media (max-width: 1023px) {
+  /* Garante altura mínima para permitir scroll no mobile */
+  body {
+    min-height: calc(100vh + 2px);
+  }
+  
+  /* Previne pull-to-refresh no mobile */
+  html, body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Esconde a barra de scroll no mobile */
+  html, body {
+    overflow-x: hidden;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+    width: 0;
+    background: transparent;
+  }
+  
+  /* Adiciona estilo para o spacer invisível */
+  #mobile-scroll-spacer {
+    position: fixed !important;
+    top: -10px !important;
+    left: 0 !important;
+    width: 1px !important;
+    height: 10px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+  }
+}
+
 /* Removido overflow-x: hidden duplicado */
 
 @font-face {

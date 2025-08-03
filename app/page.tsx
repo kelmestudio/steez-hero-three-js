@@ -232,6 +232,80 @@ export default function HomePage() {
 		};
 	}, []);
 
+	// Hook para prevenir pull-to-refresh no mobile mantendo scroll mínimo
+	useEffect(() => {
+		if (typeof window === 'undefined' || isDesktop) return;
+
+		// Função para manter sempre um scroll mínimo no mobile
+		const maintainMinimalScroll = () => {
+			// Se o scroll está no topo (0), força um scroll mínimo de 1px
+			if (window.scrollY === 0) {
+				window.scrollTo(0, 1);
+			}
+		};
+
+		// Cria um elemento invisível para forçar scroll disponível
+		const createScrollSpacer = () => {
+			const spacer = document.createElement('div');
+			spacer.id = 'mobile-scroll-spacer';
+			spacer.style.cssText = `
+				position: fixed;
+				top: -10px;
+				left: 0;
+				width: 1px;
+				height: 10px;
+				opacity: 0;
+				pointer-events: none;
+				z-index: -1;
+			`;
+			document.body.appendChild(spacer);
+			return spacer;
+		};
+
+		// Remove spacer existente se houver
+		const existingSpacer = document.getElementById('mobile-scroll-spacer');
+		if (existingSpacer) {
+			existingSpacer.remove();
+		}
+
+		// Cria novo spacer
+		const spacer = createScrollSpacer();
+
+		// Força body ter altura mínima para permitir scroll
+		const originalBodyHeight = document.body.style.height;
+		document.body.style.minHeight = 'calc(100vh + 2px)';
+
+		// Mantém scroll mínimo na inicialização
+		setTimeout(maintainMinimalScroll, 100);
+
+		// Listener para manter scroll mínimo
+		const handleScroll = () => {
+			maintainMinimalScroll();
+		};
+
+		// Listener para touch start - previne pull-to-refresh
+		const handleTouchStart = (e: TouchEvent) => {
+			maintainMinimalScroll();
+		};
+
+		window.addEventListener('scroll', handleScroll, { passive: true });
+		window.addEventListener('touchstart', handleTouchStart, { passive: true });
+
+		return () => {
+			// Cleanup
+			window.removeEventListener('scroll', handleScroll);
+			window.removeEventListener('touchstart', handleTouchStart);
+			
+			// Remove spacer
+			if (spacer && spacer.parentNode) {
+				spacer.parentNode.removeChild(spacer);
+			}
+			
+			// Restaura altura original do body
+			document.body.style.height = originalBodyHeight;
+		};
+	}, [isDesktop]);
+
 	// Seções disponíveis no site
 	const SECTIONS = ["inicio", "beneficios", "ingredientes", "contato", "faq"];
 
@@ -398,6 +472,13 @@ export default function HomePage() {
 		const SCROLL_DEBOUNCE = 500; // Debounce entre scrolls
 		const GLOBAL_BLOCK_DURATION = 500; // Bloqueio global de 500ms
 
+		// Função para manter scroll mínimo no mobile
+		const maintainMinimalScroll = () => {
+			if (!isDesktop && typeof window !== 'undefined' && window.scrollY === 0) {
+				window.scrollTo(0, 1);
+			}
+		};
+
 		const handleNavigation = (direction: number) => {
 			const currentTime = Date.now();
 
@@ -422,6 +503,8 @@ export default function HomePage() {
 				isBlocked = true;
 				setTimeout(() => {
 					isBlocked = false;
+					// Mantém scroll mínimo após navegação no mobile
+					maintainMinimalScroll();
 				}, GLOBAL_BLOCK_DURATION);
 			}
 		};
@@ -433,6 +516,9 @@ export default function HomePage() {
 			if (isBlocked) {
 				return;
 			}
+
+			// Mantém scroll mínimo antes de processar wheel
+			maintainMinimalScroll();
 
 			const currentTime = Date.now();
 
@@ -456,6 +542,9 @@ export default function HomePage() {
 			if (isBlocked) {
 				return;
 			}
+
+			// Mantém scroll mínimo no touch start
+			maintainMinimalScroll();
 
 			touchStartY = e.touches[0].clientY;
 			touchStartTime = Date.now();
@@ -496,6 +585,9 @@ export default function HomePage() {
 			touchStartY = 0;
 			touchStartTime = 0;
 			isScrolling = false;
+			
+			// Mantém scroll mínimo após touch end
+			setTimeout(maintainMinimalScroll, 50);
 		};
 
 		// Event listeners
@@ -514,7 +606,7 @@ export default function HomePage() {
 			container.removeEventListener("touchmove", handleTouchMove);
 			container.removeEventListener("touchend", handleTouchEnd);
 		};
-	}, [getCurrentSection, getNextSection, scrollToSection]);
+	}, [getCurrentSection, getNextSection, scrollToSection, isDesktop]);
 
 	// Função para gerar classes CSS de animação
 	const getSlideClasses = useCallback(
