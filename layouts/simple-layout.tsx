@@ -1,15 +1,26 @@
+"use client";
+
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { usePathname } from "next/navigation";
 
 interface SimpleLayoutProps {
   children: React.ReactNode;
 }
 
 export default function SimpleLayout({ children }: SimpleLayoutProps) {
+  const pathname = usePathname();
+  
+  // Determina a seção ativa baseada na URL
+  const getActiveSection = () => {
+    if (pathname === "/sobre-nos") return "sobre";
+    return "";
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <Header activeSection="" scrollToSection={() => {}} />
+      <Header activeSection={getActiveSection()} scrollToSection={() => {}} />
       
       {/* Main Content */}
       <main className="flex-1 pt-20">

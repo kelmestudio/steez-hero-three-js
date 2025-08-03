@@ -4,13 +4,38 @@ import Link from "next/link";
 
 export default function Navbar({ tab = 'home', scrollToSection }: { tab?: string; scrollToSection?: (id: string) => void }) {
     const navItems = [
-        { section: "inicio", label: "INÍCIO", href: "/#inicio", isExternal: false },
-        { section: "ingredientes", label: "INGREDIENTES", href: "/#ingredientes", isExternal: false },
-        { section: "beneficios", label: "BENEFÍCIOS", href: "/#beneficios", isExternal: false },
-        { section: "pink", label: "PINK", href: "/#pink", isExternal: false },
-        { section: "sobre", label: "SOBRE NÓS", href: "/sobre-nos", isExternal: true },
-        { section: "contato", label: "CONTACTO", href: "/#contato", isExternal: false },
-    ];
+			{
+				section: "inicio",
+				label: "INÍCIO",
+				href: "/#inicio",
+				isExternal: false,
+			},
+			{
+				section: "beneficios",
+				label: "BENEFÍCIOS",
+				href: "/#beneficios",
+				isExternal: false,
+			},
+			{
+				section: "ingredientes",
+				label: "INGREDIENTES",
+				href: "/#ingredientes",
+				isExternal: false,
+			},
+			{ section: "pink", label: "PINK", href: "/#pink", isExternal: false },
+			{
+				section: "contato",
+				label: "CONTACTO",
+				href: "/#contato",
+				isExternal: false,
+			},
+			{
+				section: "sobre",
+				label: "SOBRE NÓS",
+				href: "/sobre-nos",
+				isExternal: true,
+			},
+		];
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, section: string, isExternal: boolean) => {
         if (!isExternal) {
@@ -37,7 +62,7 @@ export default function Navbar({ tab = 'home', scrollToSection }: { tab?: string
                         <Link 
                             href={item.href}
                             onClick={(e) => handleClick(e, item.section, item.isExternal)}
-                            className={`p-2 transition-all duration-300 block font-medium text-[16px] ${tab === item.section ? 'text-[#F42254]' : 'text-[#868686]'}`}
+                            className={`p-2 transition-all duration-300 block font-medium text-[16px] hover:text-gray-400 ${tab === item.section ? 'text-[#F42254]' : 'text-[#868686]'}`}
                         >
                             {item.label}
                         </Link>
