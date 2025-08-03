@@ -29,13 +29,9 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo como link para a página inicial */}
         <div className="flex items-center">
-          <button 
-            onClick={() => scrollToSection("inicio")} 
-            className="flex items-center cursor-pointer transition-opacity hover:opacity-80"
-            aria-label="Ir para página inicial"
-          >
+           <Link href="/">
             <Steez />
-          </button>
+          </Link>
         </div>
         
         {/* Navegação desktop */}

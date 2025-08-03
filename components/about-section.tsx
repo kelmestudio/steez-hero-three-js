@@ -18,7 +18,7 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   return (
-		<div className="container mx-auto px-4 flex flex-col items-center min-h-[70vh] max-h-screen overflow-hidden pt-0 pb-8">
+		<div className="container mx-auto px-4 flex flex-col items-center min-h-[70vh] max-h-screen overflow-hidden pt-0 pb-12">
 	
 				<h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-center uppercase italic mb-4 lg:mb-6 text-[#181818] flex-shrink-0">
 					SOBRE NÓS
