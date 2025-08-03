@@ -17,7 +17,7 @@ export default function PhotoModal({ isOpen, onClose }: PhotoModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isBlackAndWhite, setIsBlackAndWhite] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [aspectRatio, setAspectRatio] = useState("1:1");
   const [showDecorations, setShowDecorations] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +42,7 @@ export default function PhotoModal({ isOpen, onClose }: PhotoModalProps) {
         // Reset modal state when closing
         setSelectedImage(null);
         setIsBlackAndWhite(false);
-        setAspectRatio("16:9");
+        setAspectRatio("1:1");
         setShowDecorations(false);
         setIsSubmitted(false);
         setIsSubmitting(false);
@@ -85,7 +85,7 @@ export default function PhotoModal({ isOpen, onClose }: PhotoModalProps) {
   const resetImage = () => {
     setSelectedImage(null);
     setIsBlackAndWhite(false);
-    setAspectRatio("16:9");
+    setAspectRatio("1:1");
     setShowDecorations(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -124,7 +124,7 @@ export default function PhotoModal({ isOpen, onClose }: PhotoModalProps) {
 
         <div className="p-8">
           <h2 className="text-3xl font-bold text-center mb-8 text-[#F42254]">
-            ENVIE SEU RETRATO STEEZ
+            TEU RETRATO STEEZ
           </h2>
 
           {isSubmitted ? (
@@ -196,7 +196,7 @@ export default function PhotoModal({ isOpen, onClose }: PhotoModalProps) {
                       <select
                         value={aspectRatio}
                         onChange={(e) => setAspectRatio(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#F42254] focus:border-transparent"
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#F42254] focus:border-transparent text"
                       >
                         {aspectRatioOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -250,7 +250,7 @@ export default function PhotoModal({ isOpen, onClose }: PhotoModalProps) {
               {/* Botão enviar */}
               <div className="flex justify-center">
                 <Button
-                  className="bg-[#F42254] hover:bg-[#d41b48] text-white px-8 py-6 text-lg font-medium rounded-full"
+                  className="bg-[#F42254] hover:bg-[#d41b48] text-white w-full  py-6 text-lg font-medium rounded-full "
                   onClick={selectedImage ? handleSubmit : () => fileInputRef.current?.click()}
                   disabled={isSubmitting}
                 >
@@ -260,7 +260,7 @@ export default function PhotoModal({ isOpen, onClose }: PhotoModalProps) {
                     "ENVIAR RETRATO"
                   ) : (
                     <>
-                      <ImageIcon className="h-5 w-5 mr-2" />
+                      <ImageIcon className="h-5 w-5" />
                       SELECIONAR FOTO
                     </>
                   )}
