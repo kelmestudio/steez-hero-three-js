@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { CarouselItem } from "@/components/ui/carousel";
 import { AutoplayCarousel } from "@/components/autoplay-carousel";
@@ -16,6 +16,33 @@ interface AboutSectionProps {
 
 export default function AboutSection({ scrollToSection }: AboutSectionProps) {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [carouselKey, setCarouselKey] = useState(0);
+
+  // Hook para resetar o carrossel quando a seção for ativada
+  useEffect(() => {
+    const handleSectionChanged = (event: CustomEvent) => {
+      if (event.detail.section === 'sobre-nos' || event.detail.section === 'sobre') {
+        // Força re-renderização do carrossel quando a seção é ativada
+        setCarouselKey(prev => prev + 1);
+      }
+    };
+
+    // Força inicialização do carrossel após mount
+    const timer = setTimeout(() => {
+      setCarouselKey(prev => prev + 1);
+    }, 100);
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('sectionChanged', handleSectionChanged as EventListener);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('sectionChanged', handleSectionChanged as EventListener);
+      }
+    };
+  }, []);
 
   return (
 		<div className="container mx-auto px-4 flex flex-col items-center min-h-[70vh] max-h-screen overflow-hidden pt-0 pb-12">
@@ -27,11 +54,13 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
 
 			<div className="relative w-full flex-1 flex items-center justify-center max-h-[55vh] mb-4 lg:mb-6">
 				<AutoplayCarousel
+					key={carouselKey}
 					className="w-full h-full"
 					autoplayDelay={2000}
 					loop={true}
+					align="center"
 				>
-					<CarouselItem className="pl-1 md:basis-auto relative flex items-center justify-center">
+					<CarouselItem className="pl-1 md:basis-1/2 lg:basis-1/3 relative flex items-center justify-center">
 						<Image
 							src="/images/slider-01.png"
 							alt="Slider 01"
@@ -41,7 +70,7 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
 						/>
 						<SteezAboutUs className="absolute bottom-2 right-2 lg:bottom-4 lg:right-3" />
 					</CarouselItem>
-					<CarouselItem className="pl-1 md:basis-auto relative flex items-center justify-center">
+					<CarouselItem className="pl-1 md:basis-1/2 lg:basis-1/3 relative flex items-center justify-center">
 						<div className="flex flex-col items-center">
 							<Image
 								src="/images/slider-02.png"
@@ -63,7 +92,7 @@ export default function AboutSection({ scrollToSection }: AboutSectionProps) {
 							</div>
 						</div>
 					</CarouselItem>
-					<CarouselItem className="pl-1 md:basis-auto relative flex items-center justify-center">
+					<CarouselItem className="pl-1 md:basis-1/2 lg:basis-1/3 relative flex items-center justify-center">
 						<div className="flex flex-col items-center">
 							<div className="flex items-center justify-center mb-2">
 								<p className="text-xs font-medium text-[#2E2E2E] text-nowrap">

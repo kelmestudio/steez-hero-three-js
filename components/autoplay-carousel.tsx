@@ -24,15 +24,28 @@ export function AutoplayCarousel({
   children,
   autoplayDelay = 3000,
   loop = true,
-  align = "start"
+  align = "center"
 }: AutoplayCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const carouselRef = useRef<HTMLDivElement | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  
+  // Hook para garantir que o carrossel está pronto antes de iniciar o autoplay
+  useEffect(() => {
+    if (api) {
+      // Pequeno delay para garantir que o DOM está totalmente renderizado
+      const readyTimer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      
+      return () => clearTimeout(readyTimer);
+    }
+  }, [api]);
   
   // Implementar autoplay manual usando useEffect
   useEffect(() => {
-    if (!api) return;
+    if (!api || !isReady) return;
     
     // Função para avançar ao próximo slide
     const autoplayNext = () => {
@@ -52,11 +65,11 @@ export function AutoplayCarousel({
         clearInterval(intervalRef.current);
       }
     };
-  }, [api, autoplayDelay, loop]);
+  }, [api, autoplayDelay, loop, isReady]);
   
   // Adicionar eventos de mouse para pausar/retomar o autoplay quando o mouse estiver sobre o carousel
   useEffect(() => {
-    if (!api || !carouselRef.current) return;
+    if (!api || !carouselRef.current || !isReady) return;
     
     // Pausar quando o mouse estiver sobre o carousel
     const handleMouseEnter = () => {
@@ -96,7 +109,7 @@ export function AutoplayCarousel({
         element.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [api, autoplayDelay, loop]);
+  }, [api, autoplayDelay, loop, isReady]);
 
   return (
     <div className={className} ref={carouselRef}>
