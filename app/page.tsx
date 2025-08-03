@@ -79,7 +79,7 @@ const DEFAULT_CAN_CONFIGS: DeviceConfigs = {
 			visible: true,
 		},
 		ingredientes: {
-			position: [-1.8, -5.2, 10],
+			position: [-1.8, -4.5, 10],
 			rotation: [0, Math.PI * 1, Math.PI * 0.32],
 			scale: 0.38,
 			visible: true,
@@ -551,7 +551,7 @@ export default function HomePage() {
 
 			{/* Botão de configuração */}
 			<button
-				className="fixed right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
+				className="fixed hidden right-5 bottom-5 bg-gray-800 text-white p-3 rounded-full z-50 shadow-lg hover:bg-gray-700 transition-colors"
 				onClick={() => setShowConfigPanel(!showConfigPanel)}
 			>
 				<Settings className="w-5 h-5" />
@@ -650,7 +650,7 @@ export default function HomePage() {
 				id="ingredientes"
 				className={`${getSlideClasses(
 					"ingredientes"
-				)} flex items-center justify-center pt-0 lg:pt-36 pb-0 lg:pb-0`}
+				)} flex items-center justify-center pt-0 lg:pt-36 pb-48 lg:pb-0`}
 			>
 				<IngredientesSection
 					scrollToSection={scrollToSection}

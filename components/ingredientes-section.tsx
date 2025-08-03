@@ -11,7 +11,7 @@ interface IngredientesSectionProps {
 
 export default function IngredientesSection({ scrollToSection, onOpenModal }: IngredientesSectionProps) {
   return (
-    <div className="container mx-auto px-6 max-w-7xl mb-24">
+    <div className="container mx-auto px-6 max-w-7xl">
       <div className="flex flex-col lg:flex-row-reverse items-center justify-center lg:justify-between gap-4 md:gap-8 text-center lg:text-left">
         {/* Coluna de texto com os ingredientes */}
         <div className="w-full lg:w-1/2 gap-4 z-10 flex flex-col items-center lg:items-start">
