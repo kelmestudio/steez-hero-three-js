@@ -22,7 +22,6 @@ import MottoSection from "@/components/motto-section";
 import BeneficiosSection from "@/components/beneficios-section";
 import IngredientesSection from "@/components/ingredientes-section";
 import PinkSection from "@/components/pink-section";
-import AboutSection from "@/components/about-section";
 import ContatoSection from "@/components/contato-section";
 import IngredientesModal from "@/components/ingredientes-modal";
 import HomeLayout from "./layout.client";
@@ -52,9 +51,8 @@ const NAVIGATION_MAP: { [key: string]: { up: string; down: string } } = {
 	motto: { up: "inicio", down: "beneficios" },
 	beneficios: { up: "motto", down: "ingredientes" },
 	ingredientes: { up: "beneficios", down: "pink" },
-	pink: { up: "ingredientes", down: "sobre" },
-	sobre: { up: "pink", down: "contato" },
-	contato: { up: "sobre", down: "faq" },
+	pink: { up: "ingredientes", down: "contato" },
+	contato: { up: "pink", down: "faq" },
 	faq: { up: "contato", down: "footer" },
 	footer: { up: "faq", down: "footer" },
 };
@@ -91,12 +89,6 @@ const DEFAULT_CAN_CONFIGS: DeviceConfigs = {
 			rotation: [Math.PI * 1.08, 0, Math.PI * 0.7],
 			scale: 0.38,
 			visible: true,
-		},
-		sobre: {
-			position: [-6, -4, 10],
-			rotation: [0, Math.PI, 0],
-			scale: 0.7,
-			visible: false,
 		},
 		contato: {
 			position: [0, 1, 10],
@@ -142,12 +134,6 @@ const DEFAULT_CAN_CONFIGS: DeviceConfigs = {
 			scale: 0.7,
 			visible: true,
 		},
-		sobre: {
-			position: [-6, -4, 10],
-			rotation: [0, Math.PI, 0],
-			scale: 0.7,
-			visible: false,
-		},
 		contato: {
 			position: [0, 1, 10],
 			rotation: [0, Math.PI * 1.5, 0],
@@ -181,9 +167,17 @@ export default function HomePage() {
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			const hash = window.location.hash.replace('#', '');
-			const validSections = ['inicio', 'beneficios', 'ingredientes', 'pink', 'sobre', 'contato', 'faq'];
+			const validSections = ['inicio', 'beneficios', 'ingredientes', 'pink', 'contato', 'faq'];
 			if (hash && validSections.includes(hash)) {
 				setActiveSection(hash);
+				
+				// Pequeno delay para garantir que a página carregou antes de fazer scroll
+				setTimeout(() => {
+					const element = document.getElementById(hash);
+					if (element) {
+						setActiveSection(hash);
+					}
+				}, 100);
 			}
 		}
 	}, []);
@@ -193,7 +187,7 @@ export default function HomePage() {
 		if (typeof window !== 'undefined') {
 			const handlePopState = () => {
 				const hash = window.location.hash.replace('#', '');
-				const validSections = ['inicio', 'beneficios', 'ingredientes', 'pink', 'sobre', 'contato', 'faq'];
+				const validSections = ['inicio', 'beneficios', 'ingredientes', 'pink', 'contato', 'faq'];
 				if (hash && validSections.includes(hash)) {
 					setActiveSection(hash);
 				} else if (!hash) {
@@ -239,7 +233,7 @@ export default function HomePage() {
 	}, []);
 
 	// Seções disponíveis no site
-	const SECTIONS = ["inicio", "beneficios", "sobre", "contato", "faq"];
+	const SECTIONS = ["inicio", "beneficios", "ingredientes", "contato", "faq"];
 
 	// Seções na ordem exata de navegação
 	const ORDERED_SECTIONS = [
@@ -248,7 +242,6 @@ export default function HomePage() {
 		"beneficios",
 		"ingredientes",
 		"pink",
-		"sobre",
 		"contato",
 		"faq",
 		"footer",
@@ -677,16 +670,6 @@ export default function HomePage() {
 					initialQuantity={quantity}
 					initialPrice={totalPrice}
 				/>
-			</div>
-
-			{/* Seção Sobre Nós */}
-			<div
-				id="sobre"
-				className={`${getSlideClasses(
-					"sobre"
-				)} flex flex-col items-center justify-center`}
-			>
-				<AboutSection scrollToSection={scrollToSection} />
 			</div>
 
 			{/* Seção de Contato */}

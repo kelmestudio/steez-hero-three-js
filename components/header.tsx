@@ -21,7 +21,6 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
     { section: "inicio", label: "INÍCIO" },
     { section: "beneficios", label: "BENEFÍCIOS" },
     { section: "pink", label: "PINK" },
-    { section: "sobre", label: "SOBRE NÓS" },
     { section: "contato", label: "CONTACTO" }
   ];
 
@@ -83,7 +82,16 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
               <button
                 key={item.section}
                 onClick={() => {
-                  scrollToSection(item.section);
+                  const isOnHomePage = window.location.pathname === '/';
+                  
+                  if (isOnHomePage) {
+                    // Se estamos na página principal, usa scroll suave
+                    scrollToSection(item.section);
+                  } else {
+                    // Se estamos em outra página, navega para a home com âncora
+                    window.location.href = `/#${item.section}`;
+                  }
+                  
                   setIsMobileMenuOpen(false);
                 }}
                 className={`text-left py-2 ${
@@ -95,6 +103,15 @@ export default function Header({ activeSection, scrollToSection }: HeaderProps) 
                 {item.label}
               </button>
             ))}
+            
+            {/* Link para Sobre Nós - página externa */}
+            <Link
+              href="/sobre-nos"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-left py-2 text-gray-700"
+            >
+              SOBRE NÓS
+            </Link>
           </div>
         </div>
       )}

@@ -4,18 +4,29 @@ import Link from "next/link";
 
 export default function Navbar({ tab = 'home', scrollToSection }: { tab?: string; scrollToSection?: (id: string) => void }) {
     const navItems = [
-        { section: "inicio", label: "INÍCIO", href: "/#inicio" },
-        { section: "beneficios", label: "BENEFÍCIOS", href: "/#beneficios" },
-        { section: "pink", label: "PINK", href: "/#pink" },
-        { section: "sobre", label: "SOBRE", href: "/#sobre" },
-        { section: "contato", label: "CONTACTO", href: "/#contato" }
+        { section: "inicio", label: "INÍCIO", href: "/#inicio", isExternal: false },
+        { section: "ingredientes", label: "INGREDIENTES", href: "/#ingredientes", isExternal: false },
+        { section: "beneficios", label: "BENEFÍCIOS", href: "/#beneficios", isExternal: false },
+        { section: "pink", label: "PINK", href: "/#pink", isExternal: false },
+        { section: "sobre", label: "SOBRE NÓS", href: "/sobre-nos", isExternal: true },
+        { section: "contato", label: "CONTACTO", href: "/#contato", isExternal: false },
     ];
 
-    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, section: string) => {
-        e.preventDefault();
-        scrollToSection?.(section);
-        // Atualiza a URL sem recarregar a página
-        window.history.pushState(null, '', `/#${section}`);
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, section: string, isExternal: boolean) => {
+        if (!isExternal) {
+            // Verifica se estamos na página principal
+            const isOnHomePage = window.location.pathname === '/';
+            
+            if (isOnHomePage) {
+                // Se estamos na página principal, usa scroll suave
+                e.preventDefault();
+                scrollToSection?.(section);
+                // Atualiza a URL sem recarregar a página
+                window.history.pushState(null, '', `/#${section}`);
+            }
+            // Se não estamos na página principal, deixa o Link navegar normalmente para a home com âncora
+        }
+        // Se for externo, deixa o Link navegar normalmente
     };
 
     return (
@@ -25,7 +36,7 @@ export default function Navbar({ tab = 'home', scrollToSection }: { tab?: string
                     <li key={item.section} className="relative">
                         <Link 
                             href={item.href}
-                            onClick={(e) => handleClick(e, item.section)}
+                            onClick={(e) => handleClick(e, item.section, item.isExternal)}
                             className={`p-2 transition-all duration-300 block font-medium text-[16px] ${tab === item.section ? 'text-[#F42254]' : 'text-[#868686]'}`}
                         >
                             {item.label}

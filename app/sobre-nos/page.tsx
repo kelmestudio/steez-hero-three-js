@@ -11,7 +11,7 @@ export default function SobreNosPage() {
 
   return (
     <SimpleLayout>
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="max-h-screen py-20 flex items-center justify-center">
         <AboutSection scrollToSection={scrollToSection} />
       </div>
     </SimpleLayout>
