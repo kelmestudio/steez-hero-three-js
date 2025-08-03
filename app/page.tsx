@@ -742,7 +742,7 @@ export default function HomePage() {
 				id="ingredientes"
 				className={`${getSlideClasses(
 					"ingredientes"
-				)} flex items-center justify-center pt-0 lg:pt-36 pb-48 lg:pb-0`}
+				)} flex items-center justify-center pt-0 lg:pt-16 pb-48 lg:pb-0`}
 			>
 				<IngredientesSection
 					scrollToSection={scrollToSection}
